@@ -85,7 +85,7 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
 
 // creating spin tab_Input
      spin_loadSetpoint = gtk_spin_button_new_with_range(lim_initTorque_B, lim_initTorque_T, 0.1);
-     gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_loadSetpoint), modelData->initTorqueLoad);
+     gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_loadSetpoint), modelData->loadSetpoint);
 
      spin_initTorqueLoad = gtk_spin_button_new_with_range(lim_initTorque_B, lim_initTorque_T, 0.1);
      gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_initTorqueLoad), modelData->initTorqueLoad);
@@ -237,7 +237,6 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_box_pack_start(GTK_BOX (vboxForButtons), notebook, FALSE, FALSE, 5);
      gtk_box_pack_start(GTK_BOX (vboxForButtons), buttonUpdate, FALSE, FALSE, 5);
      gtk_box_pack_start(GTK_BOX (vboxForButtons), buttonSave, FALSE, FALSE, 5);
-     //gtk_box_pack_start(GTK_BOX (vboxForButtons), buttonCreate_1, FALSE, FALSE, 5);
 
      gtk_box_pack_start(GTK_BOX (hbox), vboxForButtons, TRUE, TRUE, 5);
      gtk_box_pack_start(GTK_BOX (hbox), vboxForPlots, TRUE, TRUE, 5);
@@ -252,8 +251,6 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      g_signal_connect (G_OBJECT (buttonUpdate), "clicked", G_CALLBACK (update_plot_callback), modelData);
      g_signal_connect (G_OBJECT (buttonSave), "clicked", G_CALLBACK (buttonSave_clicked), modelData);
 
-     //g_signal_connect (G_OBJECT (buttonKill_1), "clicked", G_CALLBACK (clear_plot_callback), modelData);
-     //g_signal_connect (G_OBJECT (buttonCreate_1), "clicked", G_CALLBACK (update_plot_callback), modelData);
 
      g_signal_connect_swapped (G_OBJECT (spin_timeMax), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_timeStep), "value-changed", G_CALLBACK (spin_changed),modelData);
