@@ -12,9 +12,9 @@ ModelData modelData;
      modelData.initSpeedEng = 64;
 
      modelData.timeLoadRise = 0;
-     modelData.timeLoadFall = 0;
+     modelData.timeLoadFall = 1;
      modelData.timeSpeedRise = 0.05;
-     modelData.timeSpeedFall = 0;
+     modelData.timeSpeedFall = 1;
 
 
      modelData.plotWidth = 600;
