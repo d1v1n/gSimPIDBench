@@ -256,7 +256,7 @@ int calculate_input_signal (ModelData *modelData, int n) {
 
           mgl_data_set_value((HMDT)modelData->torqueLoad, modelData->initTorqueLoad, i, 0, 0);
 	  //g_print ("%d\t%f\n", i, modelData->initTorqueLoad);
-	  
+
      }
 
      for (i = loadRisePoint; i < loadFallPoint; i++) {
@@ -306,7 +306,7 @@ int calculate_data(ModelData *modelData) {
           modelData->torqueLoad = (size_t)mgl_create_data_size(n, 1, 1);
 
           // in testing purpose
-	  calculate_input_signal (modelData, n);
+          calculate_input_signal (modelData, n);
           // in testing purpose
 
           modelData->torqueEng = (size_t)mgl_create_data_size(n, 1, 1);
@@ -631,13 +631,13 @@ void spin_changed(ModelData *modelData) {
      //g_print ("ctrl.bDiff changed %f\n", modelData->ctrl.bDiff);
      modelData->ctrl.aDiff = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_aDiff));
      //g_print ("ctrl.aDiff changed %f\n", modelData->ctrl.aDiff);
-     
+
      modelData->initTorqueLoad = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_initTorqueLoad));
      //g_print ("modelData.initTorqueLoad changed %f\n", modelData->initTorqueLoad);
-     
+
      modelData->loadSetpoint = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_loadSetpoint));
      //g_print ("modelData.loadSetpoint changed %f\n", modelData->loadSetpoint);
-     
+
      modelData->initSpeedEng = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_initSpeedEng));
      //g_print ("modelData.initSpeedEng changed %f\n", modelData->initSpeedEng);
 
@@ -651,7 +651,7 @@ void spin_changed(ModelData *modelData) {
 
      if (modelData->timeLoadRise > modelData->timeLoadFall) modelData->timeLoadFall = modelData->timeMax;
      if (modelData->timeSpeedRise > modelData->timeSpeedFall) modelData->timeSpeedFall = modelData->timeMax;
-     //g_print ("timeLoadRise %f\n", modelData->timeLoadRise);     
+     //g_print ("timeLoadRise %f\n", modelData->timeLoadRise);
      //g_print ("timeLoadFall %f\n", modelData->timeLoadFall);
      //g_print ("timeSpeedRise %f\n", modelData->timeSpeedRise);
      //g_print ("timeSpeedFall %f\n", modelData->timeSpeedFall);
