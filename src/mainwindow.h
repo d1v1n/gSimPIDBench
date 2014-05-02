@@ -13,6 +13,7 @@
 #define lim_initTorque_B 0
 #define lim_speedSetpoint_B 0
 #define lim_initSpeedEng_B 0
+#define lim_inputSetpoint_B 0
 #define lim_pGain_B 0
 #define lim_iGain_B 0
 #define lim_dGain_B 0
@@ -31,6 +32,7 @@
 #define lim_initTorque_T 5000
 #define lim_speedSetpoint_T 100
 #define lim_initSpeedEng_T 3000
+#define lim_inputSetpoint_T 1
 #define lim_pGain_T 100
 #define lim_iGain_T 100
 #define lim_dGain_T 100
@@ -62,6 +64,8 @@ GtkWidget *label_timeLoad;
 GtkWidget *label_speedSetpoint;
 GtkWidget *label_initSpeedEng;
 GtkWidget *label_timeSpeed;
+GtkWidget *label_inputSetpoint;
+GtkWidget *label_timeInput;
 
 GtkWidget *label_Plant;
 GtkWidget *label_timeMax;
@@ -78,6 +82,9 @@ GtkWidget *spin_speedSetpoint;
 GtkWidget *spin_initSpeedEng;
 GtkWidget *spin_timeSpeedRise;
 GtkWidget *spin_timeSpeedFall;
+GtkWidget *spin_inputSetpoint;
+GtkWidget *spin_timeInputRise;
+GtkWidget *spin_timeInputFall;
 
 GtkWidget *spin_timeMax;
 GtkWidget *spin_timeStep;

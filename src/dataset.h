@@ -40,6 +40,8 @@ typedef struct {
      double timeLoadFall;
      double timeSpeedRise;
      double timeSpeedFall;
+     double timeInputRise;
+     double timeInputFall;
 
      double inertFac;
      double inputFac;
@@ -49,6 +51,8 @@ typedef struct {
      double initTorqueLoad;
      double speedSetpoint;
      double initSpeedEng;
+     double inputSetpoint;
+     double tmpControlAction;
 
      //plot data
      gboolean plotCreated;

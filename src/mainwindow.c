@@ -47,6 +47,10 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_misc_set_alignment (GTK_MISC(label_initSpeedEng), 0, 0);
      label_timeSpeed = gtk_label_new ("Setpoint Rise/Fall time, s");
      gtk_misc_set_alignment (GTK_MISC(label_timeSpeed), 0, 0);
+     label_inputSetpoint = gtk_label_new ("Manual input, n/a");
+     gtk_misc_set_alignment (GTK_MISC(label_inputSetpoint), 0, 0);
+     label_timeInput = gtk_label_new ("Setpoint Rise/Fall time, s");
+     gtk_misc_set_alignment (GTK_MISC(label_timeInput), 0, 0);
 
      label_Plant = gtk_label_new ("Plant");
      label_timeMax = gtk_label_new ("Max simulation time, c");
@@ -108,6 +112,15 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
 
      spin_timeSpeedFall = gtk_spin_button_new_with_range(lim_timeMax_B, lim_timeMax_T, TIME_STEP);
      gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_timeSpeedFall), modelData->timeSpeedFall);
+
+     spin_inputSetpoint = gtk_spin_button_new_with_range(lim_inputSetpoint_B, lim_inputSetpoint_T, 0.05);
+     gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_inputSetpoint), modelData->inputSetpoint);
+
+     spin_timeInputRise = gtk_spin_button_new_with_range(lim_timeMax_B, lim_timeMax_T, TIME_STEP);
+     gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_timeInputRise), modelData->timeInputRise);
+
+     spin_timeInputFall = gtk_spin_button_new_with_range(lim_timeMax_B, lim_timeMax_T, TIME_STEP);
+     gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_timeInputFall), modelData->timeInputFall);
 
 // creating spin tab_Plant
 
@@ -180,6 +193,8 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_grid_attach (GTK_GRID(grid_input), label_speedSetpoint, 0, 4, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_input), label_initSpeedEng, 0, 5, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_input), label_timeSpeed, 0, 6, 1, 1);
+     gtk_grid_attach (GTK_GRID(grid_input), label_inputSetpoint, 0, 7, 1, 1);
+     gtk_grid_attach (GTK_GRID(grid_input), label_timeInput, 0, 8, 1, 1);
 
      gtk_grid_attach (GTK_GRID(grid_input), spin_loadSetpoint, 1, 1, 2, 1);
      gtk_grid_attach (GTK_GRID(grid_input), spin_initTorqueLoad, 1, 2, 2, 1);
@@ -189,6 +204,9 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_grid_attach (GTK_GRID(grid_input), spin_initSpeedEng, 1, 5, 2, 1);
      gtk_grid_attach (GTK_GRID(grid_input), spin_timeSpeedRise, 1, 6, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_input), spin_timeSpeedFall, 2, 6, 1, 1);
+     gtk_grid_attach (GTK_GRID(grid_input), spin_inputSetpoint, 1, 7, 2, 1);
+     gtk_grid_attach (GTK_GRID(grid_input), spin_timeInputRise, 1, 8, 1, 1);
+     gtk_grid_attach (GTK_GRID(grid_input), spin_timeInputFall, 2, 8, 1, 1);
 
      // grid_plant
      gtk_grid_attach (GTK_GRID(grid_plant), label_timeMax, 0, 0, 1, 1);
@@ -273,9 +291,13 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      g_signal_connect_swapped (G_OBJECT (spin_timeLoadFall), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_timeSpeedRise), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_timeSpeedFall), "value-changed", G_CALLBACK (spin_changed), modelData);
+     g_signal_connect_swapped (G_OBJECT (spin_timeInputRise), "value-changed", G_CALLBACK (spin_changed), modelData);
+     g_signal_connect_swapped (G_OBJECT (spin_timeInputFall), "value-changed", G_CALLBACK (spin_changed), modelData);
 
      g_signal_connect_swapped (G_OBJECT (spin_initTorqueLoad), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_loadSetpoint), "value-changed", G_CALLBACK (spin_changed), modelData);
+
+     g_signal_connect_swapped (G_OBJECT (spin_inputSetpoint), "value-changed", G_CALLBACK (spin_changed), modelData);
 
      combo_changed(GTK_COMBO_BOX(combo_typeOfPID), NULL); // run callback to setup activity of interface items for start conditions
 

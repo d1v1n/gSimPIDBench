@@ -219,6 +219,11 @@ int calculate_input_signal (ModelData *modelData, int n) {
      int loadFallPoint = (int) (modelData->timeLoadFall / modelData->timeStep);
      int speedRisePoint = (int) (modelData->timeSpeedRise / modelData->timeStep);
      int speedFallPoint = (int) (modelData->timeSpeedFall / modelData->timeStep);
+
+     int inputRisePoint = (int) (modelData->timeInputRise / modelData->timeStep);
+     int inputFallPoint = (int) (modelData->timeInputFall / modelData->timeStep);
+     modelData->tmpControlAction = ((modelData->initTorqueLoad - modelData->speedFac * modelData->initSpeedEng) / (/*0.01 **/ modelData->inputFac)); // stationary conditions
+
      //double speedRisePoint = modelData->timeSpeedRise;
      //double speedFallPoint = modelData->timeSpeedFall;
 
@@ -272,6 +277,26 @@ int calculate_input_signal (ModelData *modelData, int n) {
 	  //g_print ("%d\t%f\n", i, modelData->initTorqueLoad);
      }
 
+     for (i = 0; i < inputRisePoint; i++) {
+
+          mgl_data_set_value((HMDT)modelData->inputEng, modelData->tmpControlAction, i, 0, 0);
+          //g_print ("%d\t%f\n", i, modelData->tmpControlAction);
+
+     }
+
+     for (i = inputRisePoint; i < inputFallPoint; i++) {
+
+          mgl_data_set_value((HMDT)modelData->inputEng, (modelData->inputSetpoint), i, 0, 0);
+          //g_print ("%d\t%f\n", i, modelData->inputSetpoint);
+
+     }
+
+     for (i = inputFallPoint; i < n; i++) {
+
+          mgl_data_set_value((HMDT)modelData->inputEng, (modelData->tmpControlAction), i, 0, 0);
+          //g_print ("%d\t%f\n", i, modelData->tmpControlAction);
+     }
+
      return 0;
 }
 
@@ -290,7 +315,9 @@ int calculate_data(ModelData *modelData) {
           double tmpTrqEng = 0;
           double tmpAccelEng = 0;
           double tmpSpeedEng = 0;
-          double tmpControlAction = ((modelData->initTorqueLoad - modelData->speedFac * modelData->initSpeedEng) / (/*0.01 **/ modelData->inputFac)); // stationary conditions
+
+          // move variable inside dataset, place calculation of it inside calculate_input_signal function
+          //double tmpControlAction = ((modelData->initTorqueLoad - modelData->speedFac * modelData->initSpeedEng) / (/*0.01 **/ modelData->inputFac)); // stationary conditions
 
           // reset controller states!
 
@@ -317,7 +344,10 @@ int calculate_data(ModelData *modelData) {
 
           mgl_data_set_value((HMDT)modelData->time, 0.0, 0, 0, 0);
           mgl_data_set_value((HMDT)modelData->speedEng, modelData->initSpeedEng, 0, 0, 0);
-          mgl_data_set_value((HMDT)modelData->inputEng, tmpControlAction, 0, 0, 0);
+
+          // place inside calculate_input_signal function
+          //mgl_data_set_value((HMDT)modelData->inputEng, tmpControlAction, 0, 0, 0);
+
           mgl_data_set_value((HMDT)modelData->torqueEng, modelData->initTorqueLoad, 0, 0, 0);
           mgl_data_set_value((HMDT)modelData->accelEng, 0.0, 0, 0, 0);
 
@@ -329,7 +359,7 @@ int calculate_data(ModelData *modelData) {
           //g_print("************************************************************\n");
 
           //g_print("%f\t %f\t %f\t %f\n", mgl_data_get_value((HMDT)modelData->time, 0, 0, 0), mgl_data_get_value((HMDT)modelData->torqueEng, 0, 0, 0), mgl_data_get_value((HMDT)modelData->accelEng, 0, 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, 0, 0, 0));
-          //g_print("%5.3f\t %5.3f\t %5.3f\t %5.3f\n", mgl_data_get_value((HMDT)modelData->time, 0, 0, 0), mgl_data_get_value((HMDT)modelData->speedEngSetpoint, 0, 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, 0, 0, 0), tmpControlAction);
+          //g_print("%5.3f\t %5.3f\t %5.3f\t %5.3f\n", mgl_data_get_value((HMDT)modelData->time, 0, 0, 0), mgl_data_get_value((HMDT)modelData->speedEngSetpoint, 0, 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, 0, 0, 0), modelData->tmpControlAction);
 
           for ( i = 1; i < n; i++ ) {
 
@@ -341,18 +371,20 @@ int calculate_data(ModelData *modelData) {
 
                     lastCtrlTime = tmpTime;
 
-                    if (typeOfPID == 0) tmpControlAction = update_controller_output_simple ( &modelData->ctrl, mgl_data_get_value((HMDT)modelData->speedEngSetpoint, (i - 1), 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0));
-                    if (typeOfPID == 1) tmpControlAction = update_controller_output_astrom ( &modelData->ctrl, mgl_data_get_value((HMDT)modelData->speedEngSetpoint, (i - 1), 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0));
+                    if (typeOfPID == 0) modelData->tmpControlAction = update_controller_output_simple ( &modelData->ctrl, mgl_data_get_value((HMDT)modelData->speedEngSetpoint, (i - 1), 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0));
+                    if (typeOfPID == 1) modelData->tmpControlAction = update_controller_output_astrom ( &modelData->ctrl, mgl_data_get_value((HMDT)modelData->speedEngSetpoint, (i - 1), 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0));
 
                     // actuator limitation
-                    if (tmpControlAction > 1) tmpControlAction = 1;
-                    if (tmpControlAction < 0) tmpControlAction = 0;
+                    if (modelData->tmpControlAction > 1) modelData->tmpControlAction = 1;
+                    if (modelData->tmpControlAction < 0) modelData->tmpControlAction = 0;
 
                }
 
+               if (((tmpTime < modelData->timeInputRise) || (tmpTime > modelData->timeInputFall)) || ((modelData->timeInputRise == 0.0) && (modelData->timeInputFall == 0.0))) {
 
-               mgl_data_set_value((HMDT)modelData->inputEng, tmpControlAction, i, 0, 0);
+                    mgl_data_set_value((HMDT)modelData->inputEng, modelData->tmpControlAction, i, 0, 0);
 
+               }
 
                tmpTrqEng = modelData->inputFac * mgl_data_get_value((HMDT)modelData->inputEng, (i - 1) , 0, 0) + modelData->speedFac * mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0);
                mgl_data_set_value((HMDT)modelData->torqueEng, tmpTrqEng, i, 0, 0);
@@ -368,7 +400,7 @@ int calculate_data(ModelData *modelData) {
                mgl_data_set_value((HMDT)modelData->speedEng, tmpSpeedEng, i, 0, 0);
 
                //g_print("%f\t %f\t %f\t %f\n", mgl_data_get_value((HMDT)modelData->time, i, 0, 0), mgl_data_get_value((HMDT)modelData->torqueEng, i, 0, 0), mgl_data_get_value((HMDT)modelData->accelEng, i, 0, 0), mgl_data_get_value((HMDT)modelData->speedEng, i, 0, 0));
-               //g_print("%5.3f\t %5.3f\t %5.3f\t %5.3f\n", mgl_data_get_value((HMDT)modelData->time, i, 0, 0), mgl_data_get_value((HMDT)modelData->speedEngSetpoint, i, 0, 0), tmpSpeedEng, tmpControlAction);
+               //g_print("%5.3f\t %5.3f\t %5.3f\t %5.3f\n", mgl_data_get_value((HMDT)modelData->time, i, 0, 0), mgl_data_get_value((HMDT)modelData->speedEngSetpoint, i, 0, 0), tmpSpeedEng, mgl_data_get_value((HMDT)modelData->inputEng, i, 0, 0));
           }
 
           modelData->yMin = modelData->yMin * 0.98;
@@ -644,13 +676,20 @@ void spin_changed(ModelData *modelData) {
      modelData->speedSetpoint = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_speedSetpoint));
      //g_print ("modelData.speedSetpoint changed %f\n", modelData->speedSetpoint);
 
+     modelData->inputSetpoint = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_inputSetpoint));
+
      modelData->timeLoadRise = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeLoadRise));
      modelData->timeLoadFall = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeLoadFall));
      modelData->timeSpeedRise = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeSpeedRise));
      modelData->timeSpeedFall = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeSpeedFall));
 
+     modelData->timeInputRise = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeInputRise));
+     modelData->timeInputFall = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeInputFall));
+
      if (modelData->timeLoadRise > modelData->timeLoadFall) modelData->timeLoadFall = modelData->timeMax;
      if (modelData->timeSpeedRise > modelData->timeSpeedFall) modelData->timeSpeedFall = modelData->timeMax;
+
+     if (modelData->timeInputRise > modelData->timeInputFall) modelData->timeInputFall = modelData->timeInputRise;
      //g_print ("timeLoadRise %f\n", modelData->timeLoadRise);
      //g_print ("timeLoadFall %f\n", modelData->timeLoadFall);
      //g_print ("timeSpeedRise %f\n", modelData->timeSpeedRise);

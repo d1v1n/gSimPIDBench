@@ -10,12 +10,14 @@ ModelData modelData;
      modelData.initTorqueLoad = 290;
      modelData.speedSetpoint = 82;
      modelData.initSpeedEng = 64;
+     modelData.inputSetpoint = 0;
 
      modelData.timeLoadRise = 0;
      modelData.timeLoadFall = 1;
      modelData.timeSpeedRise = 0.05;
      modelData.timeSpeedFall = 1;
-
+     modelData.timeInputRise = 0;
+     modelData.timeInputFall = 0;
 
      modelData.plotWidth = 600;
      modelData.plotHeight = 400;
