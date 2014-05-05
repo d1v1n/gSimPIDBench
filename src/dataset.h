@@ -23,7 +23,14 @@ typedef struct {
 
      double clockTime; // used only in update_controller_output_basic
 
-     } PID;
+} PID;
+
+typedef struct {
+
+  int height;
+  int width;
+
+} Size;
 
 typedef struct {
 
@@ -73,7 +80,11 @@ typedef struct {
      size_t speedEng;
      size_t plot;
 
+     Size oldSize;
+     Size newSize;
+
      GdkPixbuf *pixbufForPlot;
+     GdkPixbuf *scaledPix;
      GtkWidget *plotImage;
 
 } ModelData;

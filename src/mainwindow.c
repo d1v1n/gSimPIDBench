@@ -11,12 +11,21 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
 
      gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
      gtk_window_set_title(GTK_WINDOW(window), "Test View");
-     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+     gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
      gtk_container_set_border_width(GTK_CONTAINER(window), 2);
 
 // creating layout elements
 
-     vboxForPlots = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
+     //vboxForPlots = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
+     /*
+     aspectFrame = gtk_aspect_frame_new (NULL,    // label
+                                         0.5,     // center x
+                                         0.5,     // center y
+                                         1.5,     // xsize/ysize = 1.5
+                                         FALSE ); // ignore child's aspect
+     */
+
+     scrolled = gtk_scrolled_window_new (NULL, NULL);
      vboxForButtons = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
      hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
      notebook = gtk_notebook_new();
@@ -182,9 +191,15 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      initiate_data_for_plots (modelData);
      initiate_plot (modelData);
 
+// making plot image resizeble
+
+
+
 // packing GUI
 
-     gtk_box_pack_start(GTK_BOX (vboxForPlots), modelData->plotImage, TRUE, TRUE, 5);
+     //gtk_box_pack_start(GTK_BOX (vboxForPlots), modelData->plotImage, TRUE, TRUE, 5);
+     //gtk_container_add (GTK_CONTAINER(aspectFrame), modelData->plotImage);
+     gtk_container_add (GTK_CONTAINER(scrolled), modelData->plotImage);
 
      // grid_input
      gtk_grid_attach (GTK_GRID(grid_input), label_loadSetpoint, 0, 1, 1, 1);
@@ -257,7 +272,9 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_box_pack_start(GTK_BOX (vboxForButtons), buttonSave, FALSE, FALSE, 5);
 
      gtk_box_pack_start(GTK_BOX (hbox), vboxForButtons, TRUE, TRUE, 5);
-     gtk_box_pack_start(GTK_BOX (hbox), vboxForPlots, TRUE, TRUE, 5);
+     //gtk_box_pack_start(GTK_BOX (hbox), vboxForPlots, TRUE, TRUE, 5);
+
+     gtk_box_pack_start(GTK_BOX (hbox), scrolled, TRUE, TRUE, 5);
 
      gtk_container_add(GTK_CONTAINER(window), hbox);
 
@@ -302,6 +319,13 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      combo_changed(GTK_COMBO_BOX(combo_typeOfPID), NULL); // run callback to setup activity of interface items for start conditions
 
      g_signal_connect (G_OBJECT (combo_typeOfPID), "changed", G_CALLBACK (combo_changed), NULL);
+     g_signal_connect (window, "check-resize", G_CALLBACK (resize_plot), modelData);
+     g_signal_connect (window, "window-state-event", G_CALLBACK (window_state_changed), modelData);
+
+// initiate size of window struct and set size of scrolled
+
+     gtk_window_get_size (GTK_WINDOW (window), &(modelData->oldSize.width), &(modelData->oldSize.height));
+     gtk_widget_set_size_request (scrolled, modelData->plotWidth, modelData->plotHeight); //sets size of container, that size will be minimum allowed
 
 // show widgets and run gtk_main
 

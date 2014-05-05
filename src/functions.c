@@ -725,6 +725,62 @@ void combo_changed(GtkComboBox *combo, gpointer *userData) {
 
 }
 
+gboolean resize_plot (GtkWidget *window, ModelData *modelData) {
+
+     gtk_window_get_size (GTK_WINDOW (window), &(modelData->newSize.width), &(modelData->newSize.height));
+
+     if ((modelData->oldSize.width != modelData->newSize.width) || (modelData->oldSize.height != modelData->newSize.height)) {
+
+          GtkAllocation* alloc = g_new(GtkAllocation, 1);
+          gtk_widget_get_allocation(scrolled, alloc);
+
+          modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, (int)(0.95 * alloc->width), (int)(0.95 * alloc->height), GDK_INTERP_BILINEAR);
+
+          if (modelData->scaledPix == NULL) {
+
+               g_printerr("Failed to resize image\n");
+               return TRUE;
+
+          }
+
+      gtk_image_set_from_pixbuf(GTK_IMAGE(modelData->plotImage), modelData->scaledPix);
+
+      g_free(alloc);
+
+      modelData->oldSize = modelData->newSize;
+
+  }
+
+  return FALSE;
+}
+
+
+gboolean window_state_changed (GtkWidget *window, GdkEventWindowState *event, ModelData *modelData) {
+
+  if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) {
+
+     GtkAllocation* alloc = g_new(GtkAllocation, 1);
+     gtk_widget_get_allocation(scrolled, alloc);
+
+     modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, (int)(0.95 * alloc->width), (int)(0.95 * alloc->height), GDK_INTERP_BILINEAR);
+
+     if (modelData->scaledPix == NULL) {
+
+          g_printerr("Failed to resize image\n");
+          return TRUE;
+
+     }
+
+     gtk_image_set_from_pixbuf(GTK_IMAGE(modelData->plotImage), modelData->scaledPix);
+
+     g_free(alloc);
+
+  }
+
+  return FALSE;
+
+}
+
 void exit_callback (ModelData *modelData) {
 
      gtk_main_quit();

@@ -46,7 +46,9 @@
 #define TIME_STEP 0.01
 
 GtkWidget *window;
-GtkWidget *vboxForPlots;
+GtkWidget *scrolled;
+//GtkWidget *aspectFrame;
+//GtkWidget *vboxForPlots;
 GtkWidget *vboxForButtons;
 GtkWidget *hbox;
 GtkWidget *grid_input;

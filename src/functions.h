@@ -42,6 +42,10 @@ void spin_changed (ModelData *);
 
 void combo_changed (GtkComboBox *, gpointer *);
 
+gboolean resize_plot (GtkWidget *, ModelData *);
+
+gboolean window_state_changed (GtkWidget *, GdkEventWindowState *, ModelData *);
+
 void exit_callback (ModelData *);
 
 #endif // FUNCTIONS_H
