@@ -17,13 +17,12 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
 // creating layout elements
 
      //vboxForPlots = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
-     /*
-     aspectFrame = gtk_aspect_frame_new (NULL,    // label
+
+     aspectFrame = gtk_aspect_frame_new ("Transient plot",    // label
                                          0.5,     // center x
                                          0.5,     // center y
                                          1.5,     // xsize/ysize = 1.5
                                          FALSE ); // ignore child's aspect
-     */
 
      scrolled = gtk_scrolled_window_new (NULL, NULL);
      vboxForButtons = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
@@ -198,8 +197,8 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
 // packing GUI
 
      //gtk_box_pack_start(GTK_BOX (vboxForPlots), modelData->plotImage, TRUE, TRUE, 5);
-     //gtk_container_add (GTK_CONTAINER(aspectFrame), modelData->plotImage);
      gtk_container_add (GTK_CONTAINER(scrolled), modelData->plotImage);
+     gtk_container_add (GTK_CONTAINER(aspectFrame), scrolled);
 
      // grid_input
      gtk_grid_attach (GTK_GRID(grid_input), label_loadSetpoint, 0, 1, 1, 1);
@@ -274,7 +273,7 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_box_pack_start(GTK_BOX (hbox), vboxForButtons, TRUE, TRUE, 5);
      //gtk_box_pack_start(GTK_BOX (hbox), vboxForPlots, TRUE, TRUE, 5);
 
-     gtk_box_pack_start(GTK_BOX (hbox), scrolled, TRUE, TRUE, 5);
+     gtk_box_pack_start(GTK_BOX (hbox), aspectFrame, TRUE, TRUE, 5);
 
      gtk_container_add(GTK_CONTAINER(window), hbox);
 

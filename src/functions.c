@@ -734,7 +734,7 @@ gboolean resize_plot (GtkWidget *window, ModelData *modelData) {
           GtkAllocation* alloc = g_new(GtkAllocation, 1);
           gtk_widget_get_allocation(scrolled, alloc);
 
-          modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, (int)(0.95 * alloc->width), (int)(0.95 * alloc->height), GDK_INTERP_BILINEAR);
+          modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
 
           if (modelData->scaledPix == NULL) {
 
@@ -762,7 +762,7 @@ gboolean window_state_changed (GtkWidget *window, GdkEventWindowState *event, Mo
      GtkAllocation* alloc = g_new(GtkAllocation, 1);
      gtk_widget_get_allocation(scrolled, alloc);
 
-     modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, (int)(0.95 * alloc->width), (int)(0.95 * alloc->height), GDK_INTERP_BILINEAR);
+     modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
 
      if (modelData->scaledPix == NULL) {
 

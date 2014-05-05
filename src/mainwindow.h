@@ -47,7 +47,7 @@
 
 GtkWidget *window;
 GtkWidget *scrolled;
-//GtkWidget *aspectFrame;
+GtkWidget *aspectFrame;
 //GtkWidget *vboxForPlots;
 GtkWidget *vboxForButtons;
 GtkWidget *hbox;
