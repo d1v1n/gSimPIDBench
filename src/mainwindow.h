@@ -46,14 +46,27 @@
 #define TIME_STEP 0.01
 
 GtkWidget *window;
-GtkWidget *scrolled;
-GtkWidget *aspectFrame;
-//GtkWidget *vboxForPlots;
+
+GtkWidget *scrolledSpeed;
+GtkWidget *aspectFrameSpeed;
+
+GtkWidget *scrolledLoad;
+GtkWidget *aspectFrameLoad;
+
+GtkWidget *scrolledSet;
+GtkWidget *aspectFrameSet;
+
+GtkWidget *scrolledInput;
+GtkWidget *aspectFrameInput;
+
+GtkWidget *vboxForPlots_1;
+GtkWidget *vboxForPlots_2;
 GtkWidget *vboxForButtons;
 GtkWidget *hbox;
 GtkWidget *grid_input;
 GtkWidget *grid_plant;
 GtkWidget *grid_controller;
+//GtkWidget *grid_plots;
 GtkWidget *notebook;
 
 GtkWidget *buttonUpdate;
@@ -119,7 +132,21 @@ GtkWidget *spin_aDiff;
 
 GtkWidget *combo_typeOfPID;
 
-//SomeGUIPtrs switchable = {0};
+GdkPixbuf *pixbufForSpeed;
+GdkPixbuf *scaledPixSpeed;
+GtkWidget *plotImageSpeed;
+
+GdkPixbuf *pixbufForLoad;
+GdkPixbuf *scaledPixLoad;
+GtkWidget *plotImageLoad;
+
+GdkPixbuf *pixbufForSet;
+GdkPixbuf *scaledPixSet;
+GtkWidget *plotImageSet;
+
+GdkPixbuf *pixbufForInput;
+GdkPixbuf *scaledPixInput;
+GtkWidget *plotImageInput;
 
 int create_main_window (ModelData *, int *argc, char **argv[]);
 

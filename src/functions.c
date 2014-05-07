@@ -12,22 +12,6 @@
 
 static int typeOfPID = 0;
 
-int setup_plot_in_pixbuf(ModelData *modelData) {
-
-     mgl_set_ranges((HMGL)modelData->plot, modelData->timeMin, modelData->timeMax, modelData->yMin, modelData->yMax, -1.0, 1.0); // values for x, y, z axis
-     mgl_axis((HMGL)modelData->plot, "xyz", "", "");
-     mgl_axis_grid((HMGL)modelData->plot,"xy" ,"" ,"" );
-     mgl_label((HMGL)modelData->plot, 'x', "Time, seconds", 0, "");
-     mgl_label((HMGL)modelData->plot, 'y', "Y-axis", 0, "");
-
-     mgl_plot_xy ((HMGL)modelData->plot, (HMDT)modelData->time, (HMDT)modelData->speedEng, "", ""); // plot data
-
-     const unsigned char *imageInMemory = mgl_get_rgb((HMGL)modelData->plot); // get pointer on plot in memory
-     modelData->pixbufForPlot = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL); // making pixbuf from memory data...
-
-     return 0;
-}
-
 int initiate_data_for_plots(ModelData *modelData){
 
      modelData->time = (size_t)mgl_create_data_size(1, 1, 1);
@@ -43,15 +27,68 @@ int initiate_data_for_plots(ModelData *modelData){
 
 int initiate_plot(ModelData *modelData) {
 
-     modelData->plot = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph
+     mgl_def_font ("cursor", "res/"); // loading default font before creating of plot
+
+     modelData->plotSpeed = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Speed
+
+     modelData->plotLoad = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Load
+
+     modelData->plotSet = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Set
+
+     modelData->plotInput = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Man
+
      setup_plot_in_pixbuf(modelData);
-     modelData->plotImage = gtk_image_new_from_pixbuf(modelData->pixbufForPlot); // making image widget from pixbuf
+
+     plotImageSpeed = gtk_image_new_from_pixbuf(pixbufForSpeed); // making image widget from pixbuf
+     plotImageLoad = gtk_image_new_from_pixbuf(pixbufForLoad);
+     plotImageSet = gtk_image_new_from_pixbuf(pixbufForSet);
+     plotImageInput = gtk_image_new_from_pixbuf(pixbufForInput);
 
      update_plot_callback(NULL, modelData);
 
      modelData->plotCreated = TRUE;
 
      //printf("Plot initiated\n");
+
+     return 0;
+}
+
+int set_default_plot_decor (size_t plot, char * axisName) {
+
+     mgl_set_font_size ((HMGL)plot, 3); // setting size of font
+     mgl_axis ((HMGL)plot, "xyz", "", "");
+     mgl_axis_grid ((HMGL)plot,"xy" ,"" ,"" );
+     mgl_label ((HMGL)plot, 'x', "t, s", 0, "");
+     mgl_label ((HMGL)plot, 'y', axisName, 0, "");
+
+     return 0;
+}
+
+int setup_plot_in_pixbuf(ModelData *modelData) {
+
+     mgl_set_ranges ((HMGL)modelData->plotSpeed, modelData->timeMin, modelData->timeMax, modelData->yMin, modelData->yMax, -1.0, 1.0); // values for x, y, z axis
+     set_default_plot_decor (modelData->plotSpeed, "speed, s-1");
+     mgl_plot_xy ((HMGL)modelData->plotSpeed, (HMDT)modelData->time, (HMDT)modelData->speedEng, "", ""); // plot data
+     const unsigned char *imageInMemory = mgl_get_rgb((HMGL)modelData->plotSpeed); // get pointer on plot in memory
+     pixbufForSpeed = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL); // making pixbuf from memory data...
+
+     mgl_set_ranges ((HMGL)modelData->plotLoad, modelData->timeMin, modelData->timeMax, (modelData->initTorqueLoad * 0.9), (modelData->loadSetpoint * 1.1) , -1.0, 1.0);
+     set_default_plot_decor (modelData->plotLoad, "load, Nm");
+     mgl_plot_xy ((HMGL)modelData->plotLoad, (HMDT)modelData->time, (HMDT)modelData->torqueLoad, "", "");
+     imageInMemory = mgl_get_rgb((HMGL)modelData->plotLoad);
+     pixbufForLoad = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL);
+
+     mgl_set_ranges ((HMGL)modelData->plotSet, modelData->timeMin, modelData->timeMax, modelData->yMin, modelData->yMax, -1.0, 1.0);
+     set_default_plot_decor (modelData->plotSet, "set, s-1");
+     mgl_plot_xy ((HMGL)modelData->plotSet, (HMDT)modelData->time, (HMDT)modelData->speedEngSetpoint, "", "");
+     imageInMemory = mgl_get_rgb((HMGL)modelData->plotSet);
+     pixbufForSet = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL);
+
+     mgl_set_ranges ((HMGL)modelData->plotInput, modelData->timeMin, modelData->timeMax, 0, 1.1, -1.0, 1.0);
+     set_default_plot_decor (modelData->plotInput, "input, -");
+     mgl_plot_xy ((HMGL)modelData->plotInput, (HMDT)modelData->time, (HMDT)modelData->inputEng, "", "");
+     imageInMemory = mgl_get_rgb((HMGL)modelData->plotInput);
+     pixbufForInput = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL);
 
      return 0;
 }
@@ -412,7 +449,10 @@ int calculate_data(ModelData *modelData) {
 
 void update_plot_callback(GtkButton *button, ModelData *modelData) {
 
-     mgl_clf((HMGL)modelData->plot);
+     mgl_clf((HMGL)modelData->plotSpeed);
+     mgl_clf((HMGL)modelData->plotLoad);
+     mgl_clf((HMGL)modelData->plotSet);
+     mgl_clf((HMGL)modelData->plotInput);
 
      //g_print ("plot update callback\n");
      //g_print ("modelData.n changed %f\n", modelData->n);
@@ -426,8 +466,14 @@ void update_plot_callback(GtkButton *button, ModelData *modelData) {
      // these part is only for data filling in testing
 
      setup_plot_in_pixbuf(modelData);
-     gtk_image_set_from_pixbuf (GTK_IMAGE(modelData->plotImage), modelData->pixbufForPlot);
-     if (modelData->plotCreated == FALSE) gtk_widget_show(modelData->plotImage);
+     gtk_image_set_from_pixbuf (GTK_IMAGE(plotImageSpeed), pixbufForSpeed);
+     gtk_image_set_from_pixbuf (GTK_IMAGE(plotImageLoad), pixbufForLoad);
+     gtk_image_set_from_pixbuf (GTK_IMAGE(plotImageSet), pixbufForSet);
+     gtk_image_set_from_pixbuf (GTK_IMAGE(plotImageInput), pixbufForInput);
+
+     resize_plot (modelData);
+
+     if (modelData->plotCreated == FALSE) gtk_widget_show(plotImageSpeed);
      modelData->plotCreated = FALSE;
 
 }
@@ -438,7 +484,7 @@ void update_plot_callback(GtkButton *button, ModelData *modelData) {
      //can be used only if all plot data was deleted
      //use after delete_plot_callback
 
-     modelData->plot = mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph
+     modelData->plotSpeed = mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph
 
      g_print ("plot update callback\n");
      g_print ("modelData.n changed %f\n", modelData->n);
@@ -453,9 +499,9 @@ void update_plot_callback(GtkButton *button, ModelData *modelData) {
 
      setup_plot_in_pixbuf(modelData);
 
-     gtk_image_set_from_pixbuf (GTK_IMAGE(modelData->plotImage), modelData->pixbufForPlot);
+     gtk_image_set_from_pixbuf (GTK_IMAGE(plotImageSpeed), pixbufForSpeed);
 
-     if (modelData->plotCreated == FALSE) gtk_widget_show(modelData->plotImage);
+     if (modelData->plotCreated == FALSE) gtk_widget_show(plotImageSpeed);
      modelData->plotCreated = TRUE;
 
 }
@@ -484,7 +530,7 @@ int delete_plot(ModelData *modelData) {
 
      }
 
-     g_object_unref(modelData->pixbufForPlot);
+     g_object_unref(pixbufForSpeed);
 
      return 0;
 }
@@ -493,13 +539,13 @@ int delete_plot(ModelData *modelData) {
 
      if (modelData->plotCreated == FALSE) {
 
-          gtk_widget_hide(modelData->plotImage);
+          gtk_widget_hide(plotImageSpeed);
 
           delete_plot_data(modelData);
 
-          mgl_clf((HMGL)modelData->plot); // cleaning plot
+          mgl_clf((HMGL)modelData->plotSpeed); // cleaning plot
 
-          //mgl_delete_graph(modelData->plot); // delete plot structure
+          //mgl_delete_graph(modelData->plotSpeed); // delete plot structure
 
           modelData->plotCreated = FALSE;
      }
@@ -510,12 +556,12 @@ int delete_plot(ModelData *modelData) {
 
      if (modelData->plotCreated == FALSE) {
 
-          gtk_widget_hide(modelData->plotImage);
+          gtk_widget_hide(plotImageSpeed);
 
           delete_plot_data(modelData);
 
-          mgl_delete_graph(modelData->plot); // delete plot structure
-          g_object_unref(modelData->pixbufForPlot);
+          mgl_delete_graph(modelData->plotSpeed); // delete plot structure
+          g_object_unref(pixbufForSpeed);
 
           modelData->plotCreated = FALSE;
      }
@@ -725,31 +771,45 @@ void combo_changed(GtkComboBox *combo, gpointer *userData) {
 
 }
 
-gboolean resize_plot (GtkWidget *window, ModelData *modelData) {
+int resize_plot (ModelData *modelData) {
+
+     GtkAllocation* alloc = g_new(GtkAllocation, 1);
+     gtk_widget_get_allocation(scrolledSpeed, alloc); // assumed that size of all plot scrolledWindows is the same
+
+     // g_print ("Plot size changed: %dx%d\n", alloc->width, alloc->height);
+
+     scaledPixSpeed = gdk_pixbuf_scale_simple(pixbufForSpeed, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
+     scaledPixSet = gdk_pixbuf_scale_simple(pixbufForSet, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
+     scaledPixLoad = gdk_pixbuf_scale_simple(pixbufForLoad, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
+     scaledPixInput = gdk_pixbuf_scale_simple(pixbufForInput, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
+
+     if ((scaledPixSpeed == NULL) || (scaledPixLoad == NULL) || (scaledPixSet == NULL) || (scaledPixInput == NULL)) {
+
+          g_printerr("Failed to resize image\n");
+          return TRUE;
+
+     }
+
+     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageSpeed), scaledPixSpeed);
+     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageSet), scaledPixSet);
+     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageLoad), scaledPixLoad);
+     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageInput), scaledPixInput);
+
+     g_free(alloc);
+
+}
+
+gboolean resize_plot_callback (GtkWidget *widget, ModelData *modelData) {
 
      gtk_window_get_size (GTK_WINDOW (window), &(modelData->newSize.width), &(modelData->newSize.height));
 
      if ((modelData->oldSize.width != modelData->newSize.width) || (modelData->oldSize.height != modelData->newSize.height)) {
 
-          GtkAllocation* alloc = g_new(GtkAllocation, 1);
-          gtk_widget_get_allocation(scrolled, alloc);
+          resize_plot (modelData);
 
-          modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
+          modelData->oldSize = modelData->newSize;
 
-          if (modelData->scaledPix == NULL) {
-
-               g_printerr("Failed to resize image\n");
-               return TRUE;
-
-          }
-
-      gtk_image_set_from_pixbuf(GTK_IMAGE(modelData->plotImage), modelData->scaledPix);
-
-      g_free(alloc);
-
-      modelData->oldSize = modelData->newSize;
-
-  }
+     }
 
   return FALSE;
 }
@@ -760,18 +820,18 @@ gboolean window_state_changed (GtkWidget *window, GdkEventWindowState *event, Mo
   if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) {
 
      GtkAllocation* alloc = g_new(GtkAllocation, 1);
-     gtk_widget_get_allocation(scrolled, alloc);
+     gtk_widget_get_allocation(scrolledSpeed, alloc);
 
-     modelData->scaledPix = gdk_pixbuf_scale_simple(modelData->pixbufForPlot, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
+     scaledPixSpeed = gdk_pixbuf_scale_simple(pixbufForSpeed, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
 
-     if (modelData->scaledPix == NULL) {
+     if (scaledPixSpeed == NULL) {
 
           g_printerr("Failed to resize image\n");
           return TRUE;
 
      }
 
-     gtk_image_set_from_pixbuf(GTK_IMAGE(modelData->plotImage), modelData->scaledPix);
+     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageSpeed), scaledPixSpeed);
 
      g_free(alloc);
 

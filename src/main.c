@@ -13,7 +13,7 @@ ModelData modelData;
      modelData.inputSetpoint = 0;
 
      modelData.timeLoadRise = 0;
-     modelData.timeLoadFall = 1;
+     modelData.timeLoadFall = 0;
      modelData.timeSpeedRise = 0.05;
      modelData.timeSpeedFall = 1;
      modelData.timeInputRise = 0;

@@ -4,11 +4,13 @@
 #include <gtk/gtk.h>
 #include "dataset.h"
 
-int setup_plot_in_pixbuf(ModelData *);
-
 int initiate_data_for_plots(ModelData *);
 
 int initiate_plot(ModelData *);
+
+int set_default_plot_decor (size_t, char * );
+
+int setup_plot_in_pixbuf (ModelData *);
 
 int validate_data(ModelData *);
 
@@ -42,7 +44,9 @@ void spin_changed (ModelData *);
 
 void combo_changed (GtkComboBox *, gpointer *);
 
-gboolean resize_plot (GtkWidget *, ModelData *);
+int resize_plot (ModelData *);
+
+gboolean resize_plot_callback (GtkWidget *, ModelData *);
 
 gboolean window_state_changed (GtkWidget *, GdkEventWindowState *, ModelData *);
 

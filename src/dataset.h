@@ -78,14 +78,14 @@ typedef struct {
      size_t torqueLoad;
      size_t speedEngSetpoint;
      size_t speedEng;
-     size_t plot;
+
+     size_t plotSpeed;
+     size_t plotLoad;
+     size_t plotSet;
+     size_t plotInput;
 
      Size oldSize;
      Size newSize;
-
-     GdkPixbuf *pixbufForPlot;
-     GdkPixbuf *scaledPix;
-     GtkWidget *plotImage;
 
 } ModelData;
 
