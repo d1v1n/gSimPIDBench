@@ -10,6 +10,7 @@
 #define lim_inertFac_B 0
 #define lim_inputFac_B 0
 #define lim_speedFac_B 0
+#define lim_inputLag_B 0
 #define lim_initTorque_B 0
 #define lim_speedSetpoint_B 0
 #define lim_initSpeedEng_B 0
@@ -29,6 +30,7 @@
 #define lim_inertFac_T 5000
 #define lim_inputFac_T 5000
 #define lim_speedFac_T 5000
+#define lim_inputLag_T 1000
 #define lim_initTorque_T 5000
 #define lim_speedSetpoint_T 100
 #define lim_initSpeedEng_T 3000
@@ -66,7 +68,6 @@ GtkWidget *hbox;
 GtkWidget *grid_input;
 GtkWidget *grid_plant;
 GtkWidget *grid_controller;
-//GtkWidget *grid_plots;
 GtkWidget *notebook;
 
 GtkWidget *buttonUpdate;
@@ -88,6 +89,7 @@ GtkWidget *label_timeStep;
 GtkWidget *label_inertFac;
 GtkWidget *label_inputFac;
 GtkWidget *label_speedFac;
+GtkWidget *label_inputLag;
 
 GtkWidget *spin_loadSetpoint;
 GtkWidget *spin_initTorqueLoad;
@@ -106,6 +108,7 @@ GtkWidget *spin_timeStep;
 GtkWidget *spin_inertFac;
 GtkWidget *spin_inputFac;
 GtkWidget *spin_speedFac;
+GtkWidget *spin_inputLag;
 
 GtkWidget *label_Controller;
 GtkWidget *label_P;

@@ -53,6 +53,7 @@ typedef struct {
      double inertFac;
      double inputFac;
      double speedFac;
+     int inputLag;
 
      double loadSetpoint;
      double initTorqueLoad;

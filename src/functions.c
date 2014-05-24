@@ -344,6 +344,7 @@ int calculate_data(ModelData *modelData) {
 
           int i = 0;
           int n = (int) modelData->timeMax / modelData->timeStep;
+          int lagIter = 0;
 
           //g_print("calculate_data call\n");
           //g_print("number of iterations = %i\n", n);
@@ -423,7 +424,20 @@ int calculate_data(ModelData *modelData) {
 
                }
 
-               tmpTrqEng = modelData->inputFac * mgl_data_get_value((HMDT)modelData->inputEng, (i - 1) , 0, 0) + modelData->speedFac * mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0);
+               // transport delay calculation
+               // length of delay determined by number of plant iterations in variable inputLag
+
+               if (((i - 1) - modelData->inputLag) < 0) {
+
+                    lagIter = 0;
+
+               } else {
+
+                    lagIter = ((i - 1) - modelData->inputLag);
+
+               }
+
+               tmpTrqEng = modelData->inputFac * mgl_data_get_value((HMDT)modelData->inputEng, (lagIter) , 0, 0) + modelData->speedFac * mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0);
                mgl_data_set_value((HMDT)modelData->torqueEng, tmpTrqEng, i, 0, 0);
 
                tmpAccelEng = (mgl_data_get_value((HMDT)modelData->torqueEng, (i - 1), 0, 0) - mgl_data_get_value((HMDT)modelData->torqueLoad, (i - 1), 0, 0)) / modelData->inertFac;
@@ -589,12 +603,13 @@ int save_to_file (char *filename, ModelData *modelData) {
 
           fprintf (pFile, "************************************\n");
           fprintf (pFile, "%s\n", asctime (timeInfo));
-          fprintf (pFile, "Sorce data:\n\n");
+          fprintf (pFile, "Source data:\n\n");
 
           fprintf (pFile, "Inertion factor: %5.3f\nInput factor: %5.3f\nSpeed factor: %5.3f\n",
                modelData->inertFac,
                modelData->inputFac,
                modelData->speedFac);
+
           fprintf (pFile, "Load: %6.3f\nDesired speed: %5.3f\nInitial speed: %5.3f\n",
                modelData->initTorqueLoad,
                modelData->speedSetpoint,
@@ -606,9 +621,11 @@ int save_to_file (char *filename, ModelData *modelData) {
                     modelData->ctrl.pGain,
                     modelData->ctrl.iGain,
                     modelData->ctrl.dGain);
+
                fprintf (pFile, "%5.3f <  Isum < %5.3f\n\n",
                     modelData->ctrl.iNeg,
                     modelData->ctrl.iPos);
+
           }
 
 
@@ -691,6 +708,8 @@ void spin_changed(ModelData *modelData) {
      //g_print ("modelData.inputFac changed %f\n", modelData->inputFac);
      modelData->speedFac = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_speedFac));
      //g_print ("modelData.speedFac changed %f\n", modelData->speedFac);
+     modelData->inputLag = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_inputLag));
+     //g_print ("modelData.inputLag changed %d\n", modelData->inputLag);
      modelData->ctrl.pGain = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_P));
      //g_print ("pGain changed %f\n", modelData->ctrl.pGain);
      modelData->ctrl.iGain = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_I));

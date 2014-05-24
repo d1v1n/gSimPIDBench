@@ -2,7 +2,7 @@ cmake_minimum_required ( VERSION 2.6 )
 
 # set APP_NAME and APP_VERSION variables
 set ( APP_NAME gSimPIDBench )
-set ( APP_VERSION "0.1.1" )
+set ( APP_VERSION "0.1.6" )
 
 project ( ${APP_NAME} )
 

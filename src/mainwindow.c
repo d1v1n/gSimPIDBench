@@ -96,6 +96,8 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_misc_set_alignment (GTK_MISC(label_inputFac), 0, 0);
      label_speedFac = gtk_label_new ("Speed factor, N*m*s");
      gtk_misc_set_alignment (GTK_MISC(label_speedFac), 0, 0);
+     label_inputLag = gtk_label_new ("Input Lag, samples");
+     gtk_misc_set_alignment (GTK_MISC(label_inputLag), 0, 0);
 
 
      label_Controller = gtk_label_new ("Controller");
@@ -171,6 +173,9 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
 
      spin_speedFac = gtk_spin_button_new_with_range(lim_speedFac_B, lim_speedFac_T, 0.1);
      gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_speedFac), modelData->speedFac);
+
+     spin_inputLag = gtk_spin_button_new_with_range(lim_inputLag_B, lim_inputLag_T, 1);
+     gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin_inputLag), modelData->inputLag);
 
 // creating spin tab_Controller
 
@@ -272,12 +277,14 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      gtk_grid_attach (GTK_GRID(grid_plant), label_inertFac, 0, 2, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_plant), label_inputFac, 0, 3, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_plant), label_speedFac, 0, 4, 1, 1);
+     gtk_grid_attach (GTK_GRID(grid_plant), label_inputLag, 0, 5, 1, 1);
 
      gtk_grid_attach (GTK_GRID(grid_plant), spin_timeMax, 1, 0, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_plant), spin_timeStep, 1, 1, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_plant), spin_inertFac, 1, 2, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_plant), spin_inputFac, 1, 3, 1, 1);
      gtk_grid_attach (GTK_GRID(grid_plant), spin_speedFac, 1, 4, 1, 1);
+     gtk_grid_attach (GTK_GRID(grid_plant), spin_inputLag, 1, 5, 1, 1);
 
      // grid_controller
      gtk_grid_attach (GTK_GRID(grid_controller), combo_typeOfPID, 0, 0, 2, 1);
@@ -329,7 +336,7 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      g_signal_connect_swapped (G_OBJECT(window), "destroy", G_CALLBACK(exit_callback), modelData);
 
      g_signal_connect (G_OBJECT (buttonUpdate), "clicked", G_CALLBACK (update_plot_callback), modelData);
-     g_signal_connect (G_OBJECT (buttonSave), "clicked", G_CALLBACK (buttonSave_clicked), modelData);
+     g_signal_connect_swapped (G_OBJECT (buttonSave), "clicked", G_CALLBACK (buttonSave_clicked), modelData);
 
 
      g_signal_connect_swapped (G_OBJECT (spin_timeMax), "value-changed", G_CALLBACK (spin_changed), modelData);
@@ -337,6 +344,7 @@ int create_main_window (ModelData *modelData, int *argc, char **argv[]) {
      g_signal_connect_swapped (G_OBJECT (spin_inertFac), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_inputFac), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_speedFac), "value-changed", G_CALLBACK (spin_changed), modelData);
+     g_signal_connect_swapped (G_OBJECT (spin_inputLag), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_speedSetpoint), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_initSpeedEng), "value-changed", G_CALLBACK (spin_changed), modelData);
      g_signal_connect_swapped (G_OBJECT (spin_P), "value-changed", G_CALLBACK (spin_changed), modelData);

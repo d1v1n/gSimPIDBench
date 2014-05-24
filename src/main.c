@@ -32,6 +32,7 @@ ModelData modelData;
      modelData.inertFac = 4.2;
      modelData.inputFac = 800;
      modelData.speedFac = 3.4;
+     modelData.inputLag = 5;
 
      modelData.ctrl.dState = 0;
      modelData.ctrl.iState = 0;
