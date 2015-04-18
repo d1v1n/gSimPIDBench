@@ -4,52 +4,68 @@
 #include <gtk/gtk.h>
 #include "dataset.h"
 
-int initiate_data_for_plots(ModelData *);
+int initiate_data_for_plots ( ModelData* );
 
-int initiate_plot(ModelData *);
+int initiate_plot ( ModelData* );
 
-int set_default_plot_decor (size_t, char * );
+int set_default_plot_decor ( size_t, char* );
 
-int setup_plot_in_pixbuf (ModelData *);
+int setup_plot_in_pixbuf ( ModelData* );
 
-int validate_data(ModelData *);
+int validate_data ( ModelData* );
 
-double update_controller_output_simple(PID *, double, double);
+double update_controller_output_simple ( PID*, double, double );
 
-double update_controller_output_basic(PID *, double, double);
+double update_controller_output_astrom ( PID*, double, double );
 
-double update_controller_output_astrom(PID *, double, double);
+int calculate_input_signal ( ModelData*, int );
 
-int calculate_input_signal (ModelData *, int);
+int calculate_data ( ModelData* );
 
-int calculate_data(ModelData *);
+int delete_plot_data ( ModelData* );
 
-int delete_plot_data(ModelData *);
+int delete_plot ( ModelData* );
 
-int delete_plot(ModelData *);
+void update_plot_callback ( GtkButton*, ModelData* );
 
-void update_plot_callback(GtkButton *, ModelData *);
+int save_to_file ( char*,  ModelData* );
 
-//static void recreate_plot_callback(GtkButton *, ModelData *);
+void buttonSave_clicked ( ModelData* );
 
-//static void clear_plot_callback(GtkButton *, ModelData *);
+void buttonLoadTable_clicked ( GtkButton*, size_t );
 
-//static void delete_plot_callback(GtkButton *, ModelData *);
+void use_tables_callback ( GtkToggleButton*, gpointer );
 
-int save_to_file (char *,  ModelData *);
+void spin_changed ( ModelData* );
 
-void buttonSave_clicked (ModelData *);
+void combo_changed ( GtkComboBox*, gpointer );
 
-void spin_changed (ModelData *);
+int resize_plot ( ModelData* );
 
-void combo_changed (GtkComboBox *, gpointer *);
+gboolean resize_plot_callback ( GtkWidget*, ModelData* );
 
-int resize_plot (ModelData *);
+gboolean window_state_changed ( GtkWidget*, GdkEventWindowState*, ModelData* );
 
-gboolean resize_plot_callback (GtkWidget *, ModelData *);
+FILE * open_file ( char filename [100] );
 
-gboolean window_state_changed (GtkWidget *, GdkEventWindowState *, ModelData *);
+LookupTable * prepare_lookup_table ( char* );
 
-void exit_callback (ModelData *);
+int count_words_symbols ( int*, int*, int*, FILE* );
+
+int parse_line ( char*, double* );
+
+double * new_table ( int, int );
+
+int fill_table ( double*, int, int, int, FILE* );
+
+double interpolate ( Node* pNode1, Node* pNode2, Node* pNode3, Node* pNode4, Node* pPoint );
+
+int get_corner_position ( LookupTable*, double, double, int*, int*);
+
+double get_data_from_table ( LookupTable* , double, double );
+
+int free_lookup_table ( size_t );
+
+void exit_callback ( ModelData* );
 
 #endif // FUNCTIONS_H

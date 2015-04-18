@@ -11,40 +11,46 @@
 #include "mainwindow.h"
 
 static int typeOfPID = 0;
+static int useTable = 1; // lets use default tables in "res/" folder
+static LookupTable* global_pLookupTable = NULL;
 
-int initiate_data_for_plots(ModelData *modelData){
+int initiate_data_for_plots ( ModelData* modelData ){
 
-     modelData->time = (size_t)mgl_create_data_size(1, 1, 1);
-     modelData->inputEng = (size_t)mgl_create_data_size(1, 1, 1);
-     modelData->torqueEng = (size_t)mgl_create_data_size(1, 1, 1);
-     modelData->torqueLoad = (size_t)mgl_create_data_size(1, 1, 1);
-     modelData->accelEng = (size_t)mgl_create_data_size(1, 1, 1);
-     modelData->speedEng = (size_t)mgl_create_data_size(1, 1, 1);
-     modelData->speedEngSetpoint = (size_t)mgl_create_data_size(1, 1, 1);
+     modelData->time = ( size_t ) mgl_create_data_size ( 1, 1, 1 );
+     modelData->inputEng = ( size_t ) mgl_create_data_size ( 1, 1, 1 );
+     modelData->torqueEng = ( size_t ) mgl_create_data_size ( 1, 1, 1 );
+     modelData->torqueLoad = ( size_t ) mgl_create_data_size ( 1, 1, 1 );
+     modelData->accelEng = ( size_t ) mgl_create_data_size ( 1, 1, 1 );
+     modelData->speedEng = ( size_t ) mgl_create_data_size ( 1, 1, 1 );
+     modelData->speedEngSetpoint = ( size_t ) mgl_create_data_size ( 1, 1, 1 );
+
+     //loading example tables
+     modelData->pTrqTable = (size_t) (prepare_lookup_table ("res/example_trqTable.txt"));
+     modelData->pRailTable = (size_t) (prepare_lookup_table ("res/example_railTable.txt"));
 
      return 0;
 }
 
-int initiate_plot(ModelData *modelData) {
+int initiate_plot ( ModelData* modelData ) {
 
-     mgl_def_font ("cursor", "res/"); // loading default font before creating of plot
+     mgl_def_font ( "cursor", "res/" ); // loading default font before creating of plot
 
-     modelData->plotSpeed = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Speed
+     modelData->plotSpeed = ( size_t ) mgl_create_graph ( modelData->plotWidth, modelData->plotHeight ); // create graph Speed
 
-     modelData->plotLoad = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Load
+     modelData->plotLoad = ( size_t ) mgl_create_graph ( modelData->plotWidth, modelData->plotHeight ); // create graph Load
 
-     modelData->plotSet = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Set
+     modelData->plotSet = ( size_t ) mgl_create_graph ( modelData->plotWidth, modelData->plotHeight ); // create graph Set
 
-     modelData->plotInput = (size_t)mgl_create_graph(modelData->plotWidth, modelData->plotHeight); // create graph Man
+     modelData->plotInput = ( size_t ) mgl_create_graph ( modelData->plotWidth, modelData->plotHeight ); // create graph Man
 
      setup_plot_in_pixbuf(modelData);
 
-     plotImageSpeed = gtk_image_new_from_pixbuf(pixbufForSpeed); // making image widget from pixbuf
-     plotImageLoad = gtk_image_new_from_pixbuf(pixbufForLoad);
-     plotImageSet = gtk_image_new_from_pixbuf(pixbufForSet);
-     plotImageInput = gtk_image_new_from_pixbuf(pixbufForInput);
+     plotImageSpeed = gtk_image_new_from_pixbuf ( pixbufForSpeed ); // making image widget from pixbuf
+     plotImageLoad = gtk_image_new_from_pixbuf ( pixbufForLoad );
+     plotImageSet = gtk_image_new_from_pixbuf ( pixbufForSet );
+     plotImageInput = gtk_image_new_from_pixbuf ( pixbufForInput );
 
-     update_plot_callback(NULL, modelData);
+     update_plot_callback ( NULL, modelData );
 
      modelData->plotCreated = TRUE;
 
@@ -53,47 +59,47 @@ int initiate_plot(ModelData *modelData) {
      return 0;
 }
 
-int set_default_plot_decor (size_t plot, char * axisName) {
+int set_default_plot_decor ( size_t plot, char * axisName ) {
 
-     mgl_set_font_size ((HMGL)plot, 3); // setting size of font
-     mgl_axis ((HMGL)plot, "xyz", "", "");
-     mgl_axis_grid ((HMGL)plot,"xy" ,"" ,"" );
-     mgl_label ((HMGL)plot, 'x', "t, s", 0, "");
-     mgl_label ((HMGL)plot, 'y', axisName, 0, "");
-
-     return 0;
-}
-
-int setup_plot_in_pixbuf(ModelData *modelData) {
-
-     mgl_set_ranges ((HMGL)modelData->plotSpeed, modelData->timeMin, modelData->timeMax, modelData->yMin, modelData->yMax, -1.0, 1.0); // values for x, y, z axis
-     set_default_plot_decor (modelData->plotSpeed, "speed, s-1");
-     mgl_plot_xy ((HMGL)modelData->plotSpeed, (HMDT)modelData->time, (HMDT)modelData->speedEng, "", ""); // plot data
-     const unsigned char *imageInMemory = mgl_get_rgb((HMGL)modelData->plotSpeed); // get pointer on plot in memory
-     pixbufForSpeed = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL); // making pixbuf from memory data...
-
-     mgl_set_ranges ((HMGL)modelData->plotLoad, modelData->timeMin, modelData->timeMax, (modelData->initTorqueLoad * 0.9), (modelData->loadSetpoint * 1.1) , -1.0, 1.0);
-     set_default_plot_decor (modelData->plotLoad, "load, Nm");
-     mgl_plot_xy ((HMGL)modelData->plotLoad, (HMDT)modelData->time, (HMDT)modelData->torqueLoad, "", "");
-     imageInMemory = mgl_get_rgb((HMGL)modelData->plotLoad);
-     pixbufForLoad = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL);
-
-     mgl_set_ranges ((HMGL)modelData->plotSet, modelData->timeMin, modelData->timeMax, modelData->yMin, modelData->yMax, -1.0, 1.0);
-     set_default_plot_decor (modelData->plotSet, "set, s-1");
-     mgl_plot_xy ((HMGL)modelData->plotSet, (HMDT)modelData->time, (HMDT)modelData->speedEngSetpoint, "", "");
-     imageInMemory = mgl_get_rgb((HMGL)modelData->plotSet);
-     pixbufForSet = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL);
-
-     mgl_set_ranges ((HMGL)modelData->plotInput, modelData->timeMin, modelData->timeMax, 0, 1.1, -1.0, 1.0);
-     set_default_plot_decor (modelData->plotInput, "input, -");
-     mgl_plot_xy ((HMGL)modelData->plotInput, (HMDT)modelData->time, (HMDT)modelData->inputEng, "", "");
-     imageInMemory = mgl_get_rgb((HMGL)modelData->plotInput);
-     pixbufForInput = gdk_pixbuf_new_from_data (imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL);
+     mgl_set_font_size ( ( HMGL ) plot, 3 ); // setting size of font
+     mgl_axis ( ( HMGL ) plot, "xyz", "", "" );
+     mgl_axis_grid ( ( HMGL ) plot,"xy" ,"" ,"" );
+     mgl_label ( ( HMGL ) plot, 'x', "t, s", 0, "" );
+     mgl_label ( ( HMGL ) plot, 'y', axisName, 0, "" );
 
      return 0;
 }
 
-int validate_data(ModelData *modelData) {
+int setup_plot_in_pixbuf ( ModelData *modelData ) {
+
+     mgl_set_ranges ( ( HMGL ) modelData->plotSpeed, modelData->timeMin, modelData->timeMax, modelData->yMin, modelData->yMax, -1.0, 1.0 ); // values for x, y, z axis
+     set_default_plot_decor ( modelData->plotSpeed, "speed, s-1" );
+     mgl_plot_xy ( ( HMGL ) modelData->plotSpeed, ( HMDT ) modelData->time, ( HMDT ) modelData->speedEng, "", "" ); // plot data
+     const unsigned char* imageInMemory = mgl_get_rgb ( ( HMGL ) modelData->plotSpeed ); // get pointer on plot in memory
+     pixbufForSpeed = gdk_pixbuf_new_from_data ( imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL ); // making pixbuf from memory data...
+
+     mgl_set_ranges ( ( HMGL ) modelData->plotLoad, modelData->timeMin, modelData->timeMax, ( modelData->initTorqueLoad * 0.9 ), ( modelData->loadSetpoint * 1.1 ) , -1.0, 1.0 );
+     set_default_plot_decor ( modelData->plotLoad, "load, Nm" );
+     mgl_plot_xy ( ( HMGL ) modelData->plotLoad, ( HMDT ) modelData->time, ( HMDT ) modelData->torqueLoad, "", "" );
+     imageInMemory = mgl_get_rgb ( ( HMGL ) modelData->plotLoad );
+     pixbufForLoad = gdk_pixbuf_new_from_data ( imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL );
+
+     mgl_set_ranges ( ( HMGL ) modelData->plotSet, modelData->timeMin, modelData->timeMax, modelData->yMin, modelData->yMax, -1.0, 1.0 );
+     set_default_plot_decor ( modelData->plotSet, "set, s-1" );
+     mgl_plot_xy ( ( HMGL ) modelData->plotSet, ( HMDT ) modelData->time, ( HMDT ) modelData->speedEngSetpoint, "", "" );
+     imageInMemory = mgl_get_rgb ( ( HMGL ) modelData->plotSet );
+     pixbufForSet = gdk_pixbuf_new_from_data ( imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL );
+
+     mgl_set_ranges ( ( HMGL ) modelData->plotInput, modelData->timeMin, modelData->timeMax, 0, 1.1, -1.0, 1.0 );
+     set_default_plot_decor ( modelData->plotInput, "input, -" );
+     mgl_plot_xy ( ( HMGL ) modelData->plotInput, ( HMDT ) modelData->time, ( HMDT ) modelData->inputEng, "", "" );
+     imageInMemory = mgl_get_rgb ( ( HMGL ) modelData->plotInput );
+     pixbufForInput = gdk_pixbuf_new_from_data ( imageInMemory, GDK_COLORSPACE_RGB, FALSE, 8, modelData->plotWidth, modelData->plotHeight, modelData->plotWidth * 3, NULL, NULL );
+
+     return 0;
+}
+
+int validate_data ( ModelData *modelData ) {
 
      if (!((modelData->timeMax > lim_timeMax_B) && (modelData->timeMax <= lim_timeMax_T))) {
 
@@ -200,7 +206,7 @@ int validate_data(ModelData *modelData) {
      return 1;
 }
 
-double update_controller_output_simple(PID *ctrl, double setponit, double position) {
+double update_controller_output_simple ( PID* ctrl, double setponit, double position ) {
 
      double pTerm = 0;
      double dTerm = 0;
@@ -211,9 +217,11 @@ double update_controller_output_simple(PID *ctrl, double setponit, double positi
 
      ctrl->iState += error; // calculate the integral state with appropriate limiting
 
-     if (ctrl->iState > ctrl->iPos) ctrl->iState = ctrl->iPos;
+//     if (ctrl->iState > ctrl->iPos) ctrl->iState = ctrl->iPos;
+//
+//     if (ctrl->iState < ctrl->iNeg) ctrl->iState = ctrl->iNeg;
 
-     if (ctrl->iState < ctrl->iNeg) ctrl->iState = ctrl->iNeg;
+     //printf("iState = %f\n", ctrl->iState);
 
      iTerm = ctrl->iGain * ctrl->iState; // calculate the integral term
 
@@ -224,7 +232,7 @@ double update_controller_output_simple(PID *ctrl, double setponit, double positi
      return (pTerm + iTerm + dTerm); // return controller output
 }
 
-double update_controller_output_astrom (PID *ctrl, double setpoint, double position) {
+double update_controller_output_astrom ( PID* ctrl, double setpoint, double position ) {
 
      double pTerm = 0;
      double dTerm = 0;
@@ -239,6 +247,8 @@ double update_controller_output_astrom (PID *ctrl, double setpoint, double posit
 
      if (ctrl->iState < ctrl->iNeg) ctrl->iState = ctrl->iNeg;
 
+     //printf("iState = %f\n", ctrl->iState);
+
      iTerm = ctrl->iGain * ctrl->iState; // calculate the integral term
 
      ctrl->dState = ctrl->aDiff * ctrl->dState - ctrl->bDiff * (position - ctrl->pastPos); // calculate the derivative term
@@ -249,7 +259,7 @@ double update_controller_output_astrom (PID *ctrl, double setpoint, double posit
      return (pTerm + iTerm + dTerm); // return controller output
 }
 
-int calculate_input_signal (ModelData *modelData, int n) {
+int calculate_input_signal ( ModelData* modelData, int n ) {
 
      int i = 0;
      int loadRisePoint = (int) (modelData->timeLoadRise / modelData->timeStep);
@@ -259,8 +269,8 @@ int calculate_input_signal (ModelData *modelData, int n) {
 
      int inputRisePoint = (int) (modelData->timeInputRise / modelData->timeStep);
      int inputFallPoint = (int) (modelData->timeInputFall / modelData->timeStep);
-     modelData->tmpControlAction = ((modelData->initTorqueLoad - modelData->speedFac * modelData->initSpeedEng) / (/*0.01 **/ modelData->inputFac)); // stationary conditions
-
+     //modelData->tmpControlAction = ((modelData->initTorqueLoad - modelData->speedFac * modelData->initSpeedEng) / (/*0.01 **/ modelData->inputFac)); // stationary conditions
+     modelData->tmpControlAction = 0;
      //double speedRisePoint = modelData->timeSpeedRise;
      //double speedFallPoint = modelData->timeSpeedFall;
 
@@ -338,24 +348,24 @@ int calculate_input_signal (ModelData *modelData, int n) {
 }
 
 
-int calculate_data(ModelData *modelData) {
+int calculate_data ( ModelData* modelData ) {
 
      if (validate_data(modelData)) {
 
           int i = 0;
-          int n = (int) modelData->timeMax / modelData->timeStep;
+          int n = ( int ) modelData->timeMax / modelData->timeStep;
           int lagIter = 0;
 
           //g_print("calculate_data call\n");
           //g_print("number of iterations = %i\n", n);
           double lastCtrlTime = 0;
           double tmpTime = 0;
+          double tmpEngInput = 0;
+          double tmpEngSpeed = 0;
+          double tmpInjection = 0;
           double tmpTrqEng = 0;
           double tmpAccelEng = 0;
           double tmpSpeedEng = 0;
-
-          // move variable inside dataset, place calculation of it inside calculate_input_signal function
-          //double tmpControlAction = ((modelData->initTorqueLoad - modelData->speedFac * modelData->initSpeedEng) / (/*0.01 **/ modelData->inputFac)); // stationary conditions
 
           // reset controller states!
 
@@ -363,31 +373,31 @@ int calculate_data(ModelData *modelData) {
           modelData->ctrl.iState = 0;
           modelData->ctrl.pastPos = 0;
 
-          modelData->time = (size_t)mgl_create_data_size(n, 1, 1);
-          modelData->inputEng = (size_t)mgl_create_data_size(n, 1, 1);
-          modelData->speedEng = (size_t)mgl_create_data_size(n, 1, 1);
+          modelData->time = ( size_t ) mgl_create_data_size ( n, 1, 1 );
+          modelData->inputEng = ( size_t ) mgl_create_data_size ( n, 1, 1 );
+          modelData->speedEng = ( size_t ) mgl_create_data_size ( n, 1, 1 );
 
-          modelData->speedEngSetpoint = (size_t)mgl_create_data_size(n, 1, 1);
-          modelData->torqueLoad = (size_t)mgl_create_data_size(n, 1, 1);
+          modelData->speedEngSetpoint = ( size_t ) mgl_create_data_size ( n, 1, 1 );
+          modelData->torqueLoad = ( size_t ) mgl_create_data_size ( n, 1, 1 );
 
           // in testing purpose
-          calculate_input_signal (modelData, n);
+          calculate_input_signal ( modelData, n );
           // in testing purpose
 
-          modelData->torqueEng = (size_t)mgl_create_data_size(n, 1, 1);
-          modelData->accelEng = (size_t)mgl_create_data_size(n, 1, 1);
+          modelData->torqueEng = ( size_t ) mgl_create_data_size ( n, 1, 1 );
+          modelData->accelEng = ( size_t ) mgl_create_data_size ( n, 1, 1 );
 
           modelData->yMin = modelData->initSpeedEng;
           modelData->yMax = modelData->initSpeedEng;
 
-          mgl_data_set_value((HMDT)modelData->time, 0.0, 0, 0, 0);
-          mgl_data_set_value((HMDT)modelData->speedEng, modelData->initSpeedEng, 0, 0, 0);
+          mgl_data_set_value ( ( HMDT ) modelData->time, 0.0, 0, 0, 0 );
+          mgl_data_set_value ( ( HMDT ) modelData->speedEng, modelData->initSpeedEng, 0, 0, 0 );
 
           // place inside calculate_input_signal function
           //mgl_data_set_value((HMDT)modelData->inputEng, tmpControlAction, 0, 0, 0);
 
-          mgl_data_set_value((HMDT)modelData->torqueEng, modelData->initTorqueLoad, 0, 0, 0);
-          mgl_data_set_value((HMDT)modelData->accelEng, 0.0, 0, 0, 0);
+          mgl_data_set_value ( ( HMDT ) modelData->torqueEng, modelData->initTorqueLoad, 0, 0, 0 );
+          mgl_data_set_value ( ( HMDT ) modelData->accelEng, 0.0, 0, 0, 0 );
 
           //g_print("******************************\n");
           //g_print("Time\t TrqEng\t AccelEng\t SpeedEng\n");
@@ -402,10 +412,10 @@ int calculate_data(ModelData *modelData) {
           for ( i = 1; i < n; i++ ) {
 
                tmpTime = i * modelData->timeStep;
-               mgl_data_set_value((HMDT)modelData->time, tmpTime, i, 0, 0);
+               mgl_data_set_value( ( HMDT ) modelData->time, tmpTime, i, 0, 0 );
 
 
-               if ((tmpTime - lastCtrlTime) >= modelData->ctrl.clockTime) {
+               if ( ( tmpTime - lastCtrlTime ) >= modelData->ctrl.clockTime ) {
 
                     lastCtrlTime = tmpTime;
 
@@ -418,16 +428,16 @@ int calculate_data(ModelData *modelData) {
 
                }
 
-               if (((tmpTime < modelData->timeInputRise) || (tmpTime > modelData->timeInputFall)) || ((modelData->timeInputRise == 0.0) && (modelData->timeInputFall == 0.0))) {
+               if ( ( ( tmpTime < modelData->timeInputRise ) || ( tmpTime > modelData->timeInputFall ) ) ||  ( ( modelData->timeInputRise == 0.0 ) && ( modelData->timeInputFall == 0.0 ) ) ) {
 
-                    mgl_data_set_value((HMDT)modelData->inputEng, modelData->tmpControlAction, i, 0, 0);
+                    mgl_data_set_value ( ( HMDT ) modelData->inputEng, modelData->tmpControlAction, i, 0, 0 );
 
                }
 
                // transport delay calculation
                // length of delay determined by number of plant iterations in variable inputLag
 
-               if (((i - 1) - modelData->inputLag) < 0) {
+               if ( ( ( i - 1 ) - modelData->inputLag ) < 0) {
 
                     lagIter = 0;
 
@@ -436,9 +446,23 @@ int calculate_data(ModelData *modelData) {
                     lagIter = ((i - 1) - modelData->inputLag);
 
                }
+               if (useTable == 0) {
 
-               tmpTrqEng = modelData->inputFac * mgl_data_get_value((HMDT)modelData->inputEng, (lagIter) , 0, 0) + modelData->speedFac * mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0);
-               mgl_data_set_value((HMDT)modelData->torqueEng, tmpTrqEng, i, 0, 0);
+                    tmpTrqEng = modelData->inputFac * mgl_data_get_value((HMDT)modelData->inputEng, (lagIter) , 0, 0) + modelData->speedFac * mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0);
+                    mgl_data_set_value((HMDT)modelData->torqueEng, tmpTrqEng, i, 0, 0);
+
+               } else if (useTable == 1) {
+
+                    tmpEngInput = mgl_data_get_value((HMDT)modelData->inputEng, (lagIter) , 0, 0);
+                    tmpEngSpeed = mgl_data_get_value((HMDT)modelData->speedEng, (i - 1), 0, 0);
+                    //printf ("tmpEngSpeed %f tmpEngInput %f\n", tmpEngSpeed, tmpEngInput);
+                    tmpInjection = get_data_from_table ((LookupTable *)modelData->pRailTable, tmpEngSpeed, tmpEngInput);
+                    tmpTrqEng = get_data_from_table ((LookupTable *)modelData->pTrqTable, tmpEngSpeed, tmpInjection);
+                    //printf ("tmpTrqEng = %f\n", tmpTrqEng);
+                    mgl_data_set_value((HMDT)modelData->torqueEng, tmpTrqEng, i, 0, 0);
+
+               }
+
 
                tmpAccelEng = (mgl_data_get_value((HMDT)modelData->torqueEng, (i - 1), 0, 0) - mgl_data_get_value((HMDT)modelData->torqueLoad, (i - 1), 0, 0)) / modelData->inertFac;
                mgl_data_set_value((HMDT)modelData->accelEng, tmpAccelEng, i, 0, 0);
@@ -485,10 +509,10 @@ void update_plot_callback(GtkButton *button, ModelData *modelData) {
      gtk_image_set_from_pixbuf (GTK_IMAGE(plotImageSet), pixbufForSet);
      gtk_image_set_from_pixbuf (GTK_IMAGE(plotImageInput), pixbufForInput);
 
-     resize_plot (modelData);
+     if ( ( !modelData->consoleMode ) && ( modelData->plotCreated ) )
+          resize_plot (modelData);
 
-     if (modelData->plotCreated == FALSE) gtk_widget_show(plotImageSpeed);
-     modelData->plotCreated = FALSE;
+     modelData->plotCreated = TRUE;
 
 }
 
@@ -696,65 +720,109 @@ void buttonSave_clicked (ModelData *modelData) {
 
 }
 
+void buttonLoadTable_clicked (GtkButton *button, size_t pLookupTable) {
+
+     GtkWidget *dialog;
+
+     dialog = gtk_file_chooser_dialog_new ("Open Table", GTK_WINDOW (window),
+                                           GTK_FILE_CHOOSER_ACTION_OPEN,
+                                           ("_Cancel"),
+                                           GTK_RESPONSE_CANCEL,
+                                           ("_Open"),
+                                           GTK_RESPONSE_ACCEPT,
+                                           NULL);
+     //gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
+
+     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
+
+          char *filename;
+          filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+          gtk_button_set_label (GTK_BUTTON (button), "Loaded");
+          pLookupTable = (size_t) (prepare_lookup_table (filename));
+
+          g_free (filename);
+     }
+
+     gtk_widget_destroy (dialog);
+
+}
+
+void use_tables_callback (GtkToggleButton *toggleButton, gpointer userData) {
+
+     if (gtk_toggle_button_get_active (toggleButton)) {
+
+          useTable = 1;
+          //printf ("Use tables is active\n");
+
+     } else {
+
+          useTable = 0;
+          //printf ("Use tables is inactive\n");
+
+     }
+
+}
+
 void spin_changed(ModelData *modelData) {
 
-     modelData->timeMax = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeMax));
+     modelData->timeMax = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeMax ) );
      //g_print ("modelData.timeMax changed %f\n", modelData->timeMax);
-     modelData->timeStep = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeStep));
+     modelData->timeStep = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeStep ) );
      //g_print ("modelData.timeStep changed %f\n", modelData->timeStep);
-     modelData->inertFac = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_inertFac));
+     modelData->inertFac = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_inertFac ) );
      //g_print ("modelData.inertFac changed %f\n", modelData->inertFac);
-     modelData->inputFac = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_inputFac));
+     modelData->inputFac = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_inputFac ) );
      //g_print ("modelData.inputFac changed %f\n", modelData->inputFac);
-     modelData->speedFac = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_speedFac));
+     modelData->speedFac = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_speedFac ) );
      //g_print ("modelData.speedFac changed %f\n", modelData->speedFac);
-     modelData->inputLag = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_inputLag));
+     modelData->inputLag = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_inputLag ) );
      //g_print ("modelData.inputLag changed %d\n", modelData->inputLag);
-     modelData->ctrl.pGain = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_P));
+     modelData->ctrl.pGain = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_P ) );
      //g_print ("pGain changed %f\n", modelData->ctrl.pGain);
-     modelData->ctrl.iGain = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_I));
+     modelData->ctrl.iGain = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_I ) );
      //g_print ("iGain changed %f\n", modelData->ctrl.iGain);
-     modelData->ctrl.dGain = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_D));
+     modelData->ctrl.dGain = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_D ) );
      //g_print ("dGain changed %f\n", modelData->ctrl.dGain);
-     modelData->ctrl.iPos = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_iPos));
+     modelData->ctrl.iPos = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_iPos ) );
      //g_print ("iPos changed %f\n", modelData->ctrl.iPos);
-     modelData->ctrl.iNeg = - gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_iNeg));
+     modelData->ctrl.iNeg = - gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_iNeg ) );
      //g_print ("iNeg changed %f\n", modelData->ctrl.iNeg);
-     modelData->ctrl.clockTime = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_ctrlClockTime));
+     modelData->ctrl.clockTime = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_ctrlClockTime ) );
      //g_print ("ctrl.clockTime changed %f\n", modelData->ctrl.clockTime);
-     modelData->ctrl.pWeight = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_pWeight));
+     modelData->ctrl.pWeight = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_pWeight ) );
      //g_print ("ctrl.pWeight changed %f\n", modelData->ctrl.pWeight);
-     modelData->ctrl.bDiff = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_bDiff));
+     modelData->ctrl.bDiff = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_bDiff ) );
      //g_print ("ctrl.bDiff changed %f\n", modelData->ctrl.bDiff);
-     modelData->ctrl.aDiff = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_aDiff));
+     modelData->ctrl.aDiff = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_aDiff ) );
      //g_print ("ctrl.aDiff changed %f\n", modelData->ctrl.aDiff);
 
-     modelData->initTorqueLoad = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_initTorqueLoad));
+     modelData->initTorqueLoad = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_initTorqueLoad ) );
      //g_print ("modelData.initTorqueLoad changed %f\n", modelData->initTorqueLoad);
 
-     modelData->loadSetpoint = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_loadSetpoint));
+     modelData->loadSetpoint = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_loadSetpoint ) );
      //g_print ("modelData.loadSetpoint changed %f\n", modelData->loadSetpoint);
 
-     modelData->initSpeedEng = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_initSpeedEng));
+     modelData->initSpeedEng = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_initSpeedEng ) );
      //g_print ("modelData.initSpeedEng changed %f\n", modelData->initSpeedEng);
 
-     modelData->speedSetpoint = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_speedSetpoint));
+     modelData->speedSetpoint = gtk_spin_button_get_value (GTK_SPIN_BUTTON ( spin_speedSetpoint ) );
      //g_print ("modelData.speedSetpoint changed %f\n", modelData->speedSetpoint);
 
-     modelData->inputSetpoint = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_inputSetpoint));
+     modelData->inputSetpoint = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_inputSetpoint ) );
 
-     modelData->timeLoadRise = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeLoadRise));
-     modelData->timeLoadFall = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeLoadFall));
-     modelData->timeSpeedRise = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeSpeedRise));
-     modelData->timeSpeedFall = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeSpeedFall));
+     modelData->timeLoadRise = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeLoadRise ) );
+     modelData->timeLoadFall = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeLoadFall ) );
+     modelData->timeSpeedRise = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeSpeedRise ) );
+     modelData->timeSpeedFall = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeSpeedFall ) );
 
-     modelData->timeInputRise = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeInputRise));
-     modelData->timeInputFall = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_timeInputFall));
+     modelData->timeInputRise = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeInputRise ) );
+     modelData->timeInputFall = gtk_spin_button_get_value ( GTK_SPIN_BUTTON ( spin_timeInputFall ) );
 
-     if (modelData->timeLoadRise > modelData->timeLoadFall) modelData->timeLoadFall = modelData->timeMax;
-     if (modelData->timeSpeedRise > modelData->timeSpeedFall) modelData->timeSpeedFall = modelData->timeMax;
+     if ( modelData->timeLoadRise > modelData->timeLoadFall ) modelData->timeLoadFall = modelData->timeMax;
+     if ( modelData->timeSpeedRise > modelData->timeSpeedFall ) modelData->timeSpeedFall = modelData->timeMax;
 
-     if (modelData->timeInputRise > modelData->timeInputFall) modelData->timeInputFall = modelData->timeInputRise;
+     if ( modelData->timeInputRise > modelData->timeInputFall ) modelData->timeInputFall = modelData->timeInputRise;
      //g_print ("timeLoadRise %f\n", modelData->timeLoadRise);
      //g_print ("timeLoadFall %f\n", modelData->timeLoadFall);
      //g_print ("timeSpeedRise %f\n", modelData->timeSpeedRise);
@@ -764,27 +832,31 @@ void spin_changed(ModelData *modelData) {
 
 }
 
-void combo_changed(GtkComboBox *combo, gpointer *userData) {
+void combo_changed ( GtkComboBox *combo, gpointer userData ) {
 
-     typeOfPID = gtk_combo_box_get_active(combo);
+     typeOfPID = gtk_combo_box_get_active ( combo );
 
      //g_print ("Combo changed %d\n", typeOfPID);
 
      if (typeOfPID == 0) {
 
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_D), GTK_STATE_FLAG_NORMAL, TRUE);
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_pWeight), GTK_STATE_FLAG_INSENSITIVE, TRUE);
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_bDiff), GTK_STATE_FLAG_INSENSITIVE, TRUE);
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_aDiff), GTK_STATE_FLAG_INSENSITIVE, TRUE);
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_D ), GTK_STATE_FLAG_NORMAL, TRUE );
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_pWeight ), GTK_STATE_FLAG_INSENSITIVE, TRUE );
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_bDiff ), GTK_STATE_FLAG_INSENSITIVE, TRUE );
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_aDiff ), GTK_STATE_FLAG_INSENSITIVE, TRUE );
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_iPos ), GTK_STATE_FLAG_INSENSITIVE, TRUE );
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_iNeg ), GTK_STATE_FLAG_INSENSITIVE, TRUE );
 
      }
 
      if (typeOfPID == 1) {
 
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_D), GTK_STATE_FLAG_INSENSITIVE, TRUE);
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_pWeight), GTK_STATE_FLAG_NORMAL, TRUE);
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_bDiff), GTK_STATE_FLAG_NORMAL, TRUE);
-          gtk_widget_set_state_flags (GTK_WIDGET(spin_aDiff), GTK_STATE_FLAG_NORMAL, TRUE);
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_D ), GTK_STATE_FLAG_INSENSITIVE, TRUE);
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_pWeight ), GTK_STATE_FLAG_NORMAL, TRUE);
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_bDiff ), GTK_STATE_FLAG_NORMAL, TRUE);
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_aDiff ), GTK_STATE_FLAG_NORMAL, TRUE);
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_iPos ), GTK_STATE_FLAG_NORMAL, TRUE );
+          gtk_widget_set_state_flags ( GTK_WIDGET ( spin_iNeg ), GTK_STATE_FLAG_NORMAL, TRUE );
 
      }
 
@@ -792,39 +864,39 @@ void combo_changed(GtkComboBox *combo, gpointer *userData) {
 
 int resize_plot (ModelData *modelData) {
 
-     GtkAllocation* alloc = g_new(GtkAllocation, 1);
-     gtk_widget_get_allocation(scrolledSpeed, alloc); // assumed that size of all plot scrolledWindows is the same
+     GtkAllocation* alloc = g_new ( GtkAllocation, 1 ) ;
+     gtk_widget_get_allocation ( scrolledSpeed, alloc ); // assumed that size of all plot scrolledWindows is the same
 
      // g_print ("Plot size changed: %dx%d\n", alloc->width, alloc->height);
 
-     scaledPixSpeed = gdk_pixbuf_scale_simple(pixbufForSpeed, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
-     scaledPixSet = gdk_pixbuf_scale_simple(pixbufForSet, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
-     scaledPixLoad = gdk_pixbuf_scale_simple(pixbufForLoad, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
-     scaledPixInput = gdk_pixbuf_scale_simple(pixbufForInput, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
+     scaledPixSpeed = gdk_pixbuf_scale_simple ( pixbufForSpeed, alloc->width, alloc->height, GDK_INTERP_BILINEAR );
+     scaledPixSet = gdk_pixbuf_scale_simple ( pixbufForSet, alloc->width, alloc->height, GDK_INTERP_BILINEAR );
+     scaledPixLoad = gdk_pixbuf_scale_simple ( pixbufForLoad, alloc->width, alloc->height, GDK_INTERP_BILINEAR );
+     scaledPixInput = gdk_pixbuf_scale_simple ( pixbufForInput, alloc->width, alloc->height, GDK_INTERP_BILINEAR );
 
-     if ((scaledPixSpeed == NULL) || (scaledPixLoad == NULL) || (scaledPixSet == NULL) || (scaledPixInput == NULL)) {
+     if ( (scaledPixSpeed == NULL) || (scaledPixLoad == NULL) || (scaledPixSet == NULL) || (scaledPixInput == NULL) ) {
 
           g_printerr("Failed to resize image\n");
           return TRUE;
 
      }
 
-     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageSpeed), scaledPixSpeed);
-     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageSet), scaledPixSet);
-     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageLoad), scaledPixLoad);
-     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageInput), scaledPixInput);
+     gtk_image_set_from_pixbuf (GTK_IMAGE ( plotImageSpeed ), scaledPixSpeed );
+     gtk_image_set_from_pixbuf (GTK_IMAGE ( plotImageSet ), scaledPixSet );
+     gtk_image_set_from_pixbuf (GTK_IMAGE ( plotImageLoad ), scaledPixLoad );
+     gtk_image_set_from_pixbuf (GTK_IMAGE ( plotImageInput ), scaledPixInput );
 
      g_free(alloc);
 
 }
 
-gboolean resize_plot_callback (GtkWidget *widget, ModelData *modelData) {
+gboolean resize_plot_callback (GtkWidget* widget, ModelData* modelData) {
 
-     gtk_window_get_size (GTK_WINDOW (window), &(modelData->newSize.width), &(modelData->newSize.height));
+     gtk_window_get_size ( GTK_WINDOW ( window ), & ( modelData->newSize.width ), & ( modelData->newSize.height ) );
 
-     if ((modelData->oldSize.width != modelData->newSize.width) || (modelData->oldSize.height != modelData->newSize.height)) {
+     if ( ( modelData->oldSize.width != modelData->newSize.width ) || ( modelData->oldSize.height != modelData->newSize.height ) ) {
 
-          resize_plot (modelData);
+          resize_plot ( modelData );
 
           modelData->oldSize = modelData->newSize;
 
@@ -834,25 +906,25 @@ gboolean resize_plot_callback (GtkWidget *widget, ModelData *modelData) {
 }
 
 
-gboolean window_state_changed (GtkWidget *window, GdkEventWindowState *event, ModelData *modelData) {
+gboolean window_state_changed ( GtkWidget* window, GdkEventWindowState* event, ModelData* modelData) {
 
-  if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) {
+  if ( event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED ) {
 
      GtkAllocation* alloc = g_new(GtkAllocation, 1);
      gtk_widget_get_allocation(scrolledSpeed, alloc);
 
      scaledPixSpeed = gdk_pixbuf_scale_simple(pixbufForSpeed, alloc->width, alloc->height, GDK_INTERP_BILINEAR);
 
-     if (scaledPixSpeed == NULL) {
+     if ( scaledPixSpeed == NULL ) {
 
-          g_printerr("Failed to resize image\n");
+          g_printerr ( "Failed to resize image\n" );
           return TRUE;
 
      }
 
-     gtk_image_set_from_pixbuf(GTK_IMAGE(plotImageSpeed), scaledPixSpeed);
+     gtk_image_set_from_pixbuf ( GTK_IMAGE(plotImageSpeed), scaledPixSpeed );
 
-     g_free(alloc);
+     g_free ( alloc );
 
   }
 
@@ -860,9 +932,348 @@ gboolean window_state_changed (GtkWidget *window, GdkEventWindowState *event, Mo
 
 }
 
-void exit_callback (ModelData *modelData) {
+FILE* open_file ( char filename[100] ) {
+
+    FILE* pFile = NULL;
+
+    pFile = fopen ( filename , "r" );
+
+    if ( pFile != NULL ) {
+
+         //printf ( "Loading file %s...\n", filename );
+
+    } else {
+
+         printf ( "Error! File %s not found!\n", filename );
+
+    }
+
+    return pFile;
+
+}
+
+LookupTable* prepare_lookup_table (char* filename) {
+
+    FILE* pFile = open_file ( filename );
+
+    LookupTable* pLookupTable = NULL;
+
+    if ( pFile != NULL ) {
+
+     int maxNumOfSymbols = 0;
+     int maxNumOfWords = 0;
+     int numOfLines = 0;
+
+     pLookupTable = malloc(3 * sizeof(int) + sizeof (size_t) + 5 * 3 * sizeof (double));
+
+     if ( count_words_symbols ( &maxNumOfSymbols, &maxNumOfWords, &numOfLines, pFile ) != 0 )
+         printf ( "Error is in function count_words_symbols... \n");
+
+     pLookupTable->maxNumOfSymbols = maxNumOfSymbols;
+     pLookupTable->maxNumOfWords = maxNumOfWords;
+     pLookupTable->numOfLines = numOfLines;
+
+     pLookupTable->dataTable = new_table(numOfLines, maxNumOfWords);
+
+     //printf("numOfLines: %d;\nmaxNumOfWords, found in line: %d;\nmaxNumOfSymbols, found in line: %d;\n\n", pLookupTable->numOfLines, pLookupTable->maxNumOfWords, pLookupTable->maxNumOfSymbols);
+
+     rewind ( pFile );
+
+     if ( fill_table ( pLookupTable->dataTable , maxNumOfSymbols, maxNumOfWords, numOfLines, pFile ) != 0 )
+         printf ( "Error is in function fill_table... \n" );
+
+     fclose ( pFile );
+
+
+      int i = 0;
+      int j = 0;
+
+//      for (i = 0; i <= pLookupTable->numOfLines - 1; i++ ) {
+//           for (j = 0; j <= pLookupTable->maxNumOfWords - 1; j++) {
+//           printf ("%6.1f ", *(pLookupTable->dataTable + (i * pLookupTable->maxNumOfWords) + j));
+//           }
+//           printf ("\n");
+//      }
+
+    }
+
+    return pLookupTable;
+
+}
+
+int count_words_symbols (int* maxNumOfSymbols, int* maxNumOfWords, int* numOfLines, FILE* pFile ) {
+
+    int c = 0;
+    int inWord = 0;
+    int nOfWords = 0;
+    int nOfSymbols = 0;
+    int nOfLines = 0;
+
+    * maxNumOfSymbols = 0;
+    * maxNumOfWords = 0;
+    * numOfLines = 0;
+
+    while (1) {
+
+     inWord = 0;
+     nOfSymbols = 0;
+     nOfWords = 0;
+
+     while (1) {
+
+         c = getc( pFile );
+         //printf("%c", (char)c);
+
+         if (( c == '\n') || ( c == EOF )) {
+
+          break;
+
+         } else {
+
+          nOfSymbols++;
+
+          if (c == ' ' || c == '\t')
+              inWord = 0;
+
+          else if ( inWord == 0 ) {
+
+              inWord = 1;
+              nOfWords++;
+
+          }
+         }
+     }
+
+     if ( * maxNumOfSymbols < nOfSymbols )
+         * maxNumOfSymbols = nOfSymbols;
+
+     if ( * maxNumOfWords < nOfWords )
+         * maxNumOfWords = nOfWords;
+
+     if ( nOfWords != 0 )
+         ++nOfLines;
+
+     if (c == EOF) {
+
+       break;
+
+     }
+
+    }
+
+     *numOfLines = nOfLines;
+
+//      printf("Result: %d lines %d columns successfully loaded!\n", * numOfLines, * maxNumOfWords);
+
+    return 0;
+
+}
+
+int parse_line ( char* pStringFromFile, double* outputArray) {
+
+    //printf ( "\nI'm parsing lines\n" );
+
+    int i = 0;
+
+    char * pLexemeFromFile = NULL;
+
+    pLexemeFromFile = strtok ( pStringFromFile," ;" );
+
+    while ( pLexemeFromFile != NULL ) {
+
+        *( outputArray + i ) = atof ( pLexemeFromFile );
+
+        //printf ( "%f\t" , atof ( pLexemeFromFile ) );
+
+        pLexemeFromFile = strtok (NULL, " ;");
+
+        i++;
+
+        }
+    //printf ("\n");
+    return 0;
+}
+
+double * new_table ( int numOfLines, int numOfWordsInLine ) {
+
+    double * pDataTable = NULL;
+
+    pDataTable = malloc ( numOfLines * numOfWordsInLine * sizeof (double) );
+
+    return pDataTable;
+
+    }
+
+
+int fill_table ( double* pDataTable , int maxNumOfSymbols, int maxNumOfWords, int numOfLines, FILE* pFile ) {
+
+    //printf ( "I'm filling data table!\n" );
+
+    char pStringFromFile [maxNumOfSymbols];
+
+    int i = 0;
+
+    for ( i = 0 ; i < numOfLines; i++ ) {
+
+        fgets ( pStringFromFile , (maxNumOfSymbols + 2), pFile ); // terminating characters of string should be included
+        //printf ( "%s" , pStringFromFile );
+
+        if ( parse_line ( pStringFromFile, (pDataTable + i * maxNumOfWords) ) != 0 )
+         printf ( "Error is in function parse_line... \n" );
+
+        }
+
+    return 0;
+
+}
+
+int get_corner_position ( LookupTable* pLookupTable, double x, double y, int* line, int* column ) {
+
+     int goal = 0;
+
+     int i = 1;
+     int j = 1;
+
+     while ( ( goal != 1 ) || ( j < ( pLookupTable->maxNumOfWords ) ) ) {
+
+          if ( ( x >= *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + j) ) && ( x < *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (j + 1)))) {
+
+               goal = 1;
+               *column = j;
+
+          }
+
+          j++;
+
+     }
+
+     goal = 0;
+
+     while ( ( goal != 1 ) || ( i < ( pLookupTable->numOfLines ) ) ) {
+
+          if ( ( y >= *(pLookupTable->dataTable + (i * pLookupTable->maxNumOfWords) + 0) ) && ( y < *(pLookupTable->dataTable + ((i + 1) * pLookupTable->maxNumOfWords) + 0))) {
+
+               goal = 1;
+               *line = i;
+
+          }
+
+          i++;
+
+     }
+
+     if ( y >= *( pLookupTable->dataTable + ( ( pLookupTable->numOfLines - 1 ) * pLookupTable->maxNumOfWords ) + 0) )
+          *line = pLookupTable->numOfLines - 2;
+
+     if ( x >= *( pLookupTable->dataTable + ( 0 * pLookupTable->maxNumOfWords ) + ( pLookupTable->maxNumOfWords - 1 ) ) )
+          *column = pLookupTable->maxNumOfWords - 2;
+
+     //printf ("line = %d column = %d\n", *line, *column);
+
+     return 0;
+
+}
+
+double interpolate ( Node* pNode1, Node* pNode2, Node* pNode3, Node* pNode4, Node* pPoint ) {
+
+    double refVal1 = 0;
+    double refVal2 = 0;
+
+    refVal1 = pNode1->value * (pNode2->x - pPoint->x) / (pNode2->x - pNode1->x) + pNode2->value * (pPoint->x - pNode1->x) / (pNode2->x - pNode1->x);
+    //printf ( "refVal1 = %f\n", refVal1 );
+
+    refVal2 = pNode3->value * (pNode2->x - pPoint->x) / (pNode2->x - pNode1->x) + pNode4->value * (pPoint->x - pNode1->x) / (pNode2->x - pNode1->x);
+    //printf ( "refVal2 = %f\n", refVal2 );
+
+    pPoint->value = refVal2 * (pNode1->y - pPoint->y) / (pNode1->y - pNode3->y) + refVal1 * (pPoint->y - pNode3->y) / (pNode1->y - pNode3->y);
+    //printf ( "Ppoint->value = %f\n", pPoint->value );
+
+    return pPoint->value;
+
+    }
+
+double get_data_from_table ( LookupTable* pLookupTable, double x, double y ) {
+
+     int cornerLineNumber = 0;
+     int cornerColumnNumber = 0;
+
+     double value = 0;
+
+
+     if (( x <  *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + 1) ) ||
+         ( x > *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (pLookupTable->maxNumOfWords - 1))) ||
+         ( y <  *(pLookupTable->dataTable + (1 * pLookupTable->maxNumOfWords) + 0) ) ||
+         ( y > *(pLookupTable->dataTable + ((pLookupTable->numOfLines - 1) * pLookupTable->maxNumOfWords) + 0))) {
+
+          printf ( "Requested values are out of data table's range (%f < x < %f) or (%f < y < %f) \n",
+          *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + 1),
+          *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (pLookupTable->maxNumOfWords - 1)),
+          *(pLookupTable->dataTable + (1 * pLookupTable->maxNumOfWords) + 0),
+          *(pLookupTable->dataTable + ((pLookupTable->numOfLines - 1) * pLookupTable->maxNumOfWords) + 0));
+
+     } else {
+
+          if (get_corner_position (pLookupTable, x, y, &cornerLineNumber, &cornerColumnNumber)) {
+
+               printf ("Error while finding corner coordinates for interpolation!\n");
+
+          } else {
+
+               pLookupTable->node1.x =     *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + cornerColumnNumber);
+               pLookupTable->node1.y =     *(pLookupTable->dataTable + (cornerLineNumber * pLookupTable->maxNumOfWords) + 0);
+               pLookupTable->node1.value = *(pLookupTable->dataTable + (cornerLineNumber * pLookupTable->maxNumOfWords) + cornerColumnNumber);
+
+               //printf ( "Node 1: x = %f , y = %f , value = %f \n", pLookupTable->node1.x, pLookupTable->node1.y, pLookupTable->node1.value );
+
+               pLookupTable->node2.x =     *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (cornerColumnNumber + 1));
+               pLookupTable->node2.y =     *(pLookupTable->dataTable + (cornerLineNumber * pLookupTable->maxNumOfWords) + 0);
+               pLookupTable->node2.value = *(pLookupTable->dataTable + (cornerLineNumber * pLookupTable->maxNumOfWords) + (cornerColumnNumber + 1));
+
+               //printf ( "Node 2: x = %f , y = %f , value = %f \n", pLookupTable->node2.x, pLookupTable->node2.y, pLookupTable->node2.value );
+
+               pLookupTable->node3.x =     *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + cornerColumnNumber);
+               pLookupTable->node3.y =     *(pLookupTable->dataTable + ((cornerLineNumber + 1) * pLookupTable->maxNumOfWords) + 0);
+               pLookupTable->node3.value = *(pLookupTable->dataTable + ((cornerLineNumber + 1) * pLookupTable->maxNumOfWords) + cornerColumnNumber);
+
+               //printf ( "Node 3: x = %f , y = %f , value = %f \n", pLookupTable->node3.x, pLookupTable->node3.y, pLookupTable->node3.value );
+
+               pLookupTable->node4.x =     *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (cornerColumnNumber + 1));
+               pLookupTable->node4.y =     *(pLookupTable->dataTable + ((cornerLineNumber + 1) * pLookupTable->maxNumOfWords) + 0);
+               pLookupTable->node4.value = *(pLookupTable->dataTable + ((cornerLineNumber + 1) * pLookupTable->maxNumOfWords) + (cornerColumnNumber + 1));
+
+               //printf ( "Node 4: x = %f , y = %f , value = %f \n", pLookupTable->node4.x, pLookupTable->node4.y, pLookupTable->node4.value );
+
+               pLookupTable->point.x = x;
+               pLookupTable->point.y = y;
+               pLookupTable->point.value = 0;
+
+               value = interpolate ( &pLookupTable->node1, &pLookupTable->node2, &pLookupTable->node3, &pLookupTable->node4, &pLookupTable->point );
+
+               //printf ("Value %f\n", value);
+
+
+          }
+
+     }
+
+  return value;
+}
+
+int free_lookup_table ( size_t pLookupTable ) {
+
+     if ( pLookupTable != 0 ) {
+          //printf ("Free lookup table called!\n");
+          free ( ( ( LookupTable * ) pLookupTable )->dataTable );
+          free ( ( LookupTable * ) pLookupTable );
+
+     }
+}
+
+void exit_callback ( ModelData* modelData ) {
 
      gtk_main_quit();
+     free_lookup_table ( modelData->pTrqTable );
+     free_lookup_table ( modelData->pRailTable );
      delete_plot(modelData);
 
 }

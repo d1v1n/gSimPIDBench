@@ -72,6 +72,10 @@ GtkWidget *notebook;
 
 GtkWidget *buttonUpdate;
 GtkWidget *buttonSave;
+GtkWidget *buttonTrqTable;
+GtkWidget *buttonRailTable;
+
+GtkWidget *checkUseTables;
 
 GtkWidget *label_Input;
 GtkWidget *label_loadSetpoint;
@@ -90,6 +94,8 @@ GtkWidget *label_inertFac;
 GtkWidget *label_inputFac;
 GtkWidget *label_speedFac;
 GtkWidget *label_inputLag;
+GtkWidget *label_trqTable;
+GtkWidget *label_railTable;
 
 GtkWidget *spin_loadSetpoint;
 GtkWidget *spin_initTorqueLoad;
@@ -151,6 +157,6 @@ GdkPixbuf *pixbufForInput;
 GdkPixbuf *scaledPixInput;
 GtkWidget *plotImageInput;
 
-int create_main_window (ModelData *, int *argc, char **argv[]);
+int create_main_window (ModelData *,int *argc, char **argv[]);
 
 #endif // MAINWINDOW_H

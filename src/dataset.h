@@ -34,6 +34,28 @@ typedef struct {
 
 typedef struct {
 
+    double x;
+    double y;
+    double value;
+
+} Node;
+
+typedef struct {
+
+    int maxNumOfSymbols;
+    int maxNumOfWords;
+    int numOfLines;
+    double * dataTable;
+    Node node1;
+    Node node2;
+    Node node3;
+    Node node4;
+    Node point;
+
+} LookupTable;
+
+typedef struct {
+
      // controller data
      PID ctrl;
 
@@ -85,8 +107,14 @@ typedef struct {
      size_t plotSet;
      size_t plotInput;
 
+     size_t pTrqTable;
+     size_t pRailTable;
+
      Size oldSize;
      Size newSize;
+
+     gboolean consoleMode;
+     char outfile[256];
 
 } ModelData;
 
