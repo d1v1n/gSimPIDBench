@@ -1,7 +1,13 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <gtk/gtk.h>
+#include <mgl2/mgl_cf.h>
+#include <math.h>
+#include <stddef.h>
+#include <time.h>
 #include "dataset.h"
 
 int initiate_data_for_plots ( ModelData* );

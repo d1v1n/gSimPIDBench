@@ -1,0 +1,4 @@
+X. Correct cmake configuration
+X. Add DEBUG option in cmake
+3. Configure git and commit
+2. Summarize requirements for tables in README.md

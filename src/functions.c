@@ -1,12 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <gtk/gtk.h>
-#include <mgl2/mgl_cf.h>
-#include <math.h>
-#include <stddef.h>
-#include <time.h>
-
-#include "dataset.h"
 #include "functions.h"
 #include "mainwindow.h"
 
@@ -932,199 +923,157 @@ gboolean window_state_changed ( GtkWidget* window, GdkEventWindowState* event, M
 
 }
 
-FILE* open_file ( char filename[100] ) {
-
+FILE* open_file(char filename[100]) {
     FILE* pFile = NULL;
-
     pFile = fopen ( filename , "r" );
-
-    if ( pFile != NULL ) {
-
+    if (pFile != NULL) {
          //printf ( "Loading file %s...\n", filename );
-
     } else {
-
          printf ( "Error! File %s not found!\n", filename );
-
     }
-
     return pFile;
-
 }
 
-LookupTable* prepare_lookup_table (char* filename) {
-
-    FILE* pFile = open_file ( filename );
-
+//this function prepares lookup talbe from text file
+LookupTable* prepare_lookup_table(char* filename) {
+#ifdef DEBUG
+    printf("In prepare_lookup_table, working with file %s\n", filename);
+#endif
+    FILE* pFile = open_file (filename);
     LookupTable* pLookupTable = NULL;
-
-    if ( pFile != NULL ) {
-
-     int maxNumOfSymbols = 0;
-     int maxNumOfWords = 0;
-     int numOfLines = 0;
-
-     pLookupTable = malloc(3 * sizeof(int) + sizeof (size_t) + 5 * 3 * sizeof (double));
-
-     if ( count_words_symbols ( &maxNumOfSymbols, &maxNumOfWords, &numOfLines, pFile ) != 0 )
-         printf ( "Error is in function count_words_symbols... \n");
-
-     pLookupTable->maxNumOfSymbols = maxNumOfSymbols;
-     pLookupTable->maxNumOfWords = maxNumOfWords;
-     pLookupTable->numOfLines = numOfLines;
-
-     pLookupTable->dataTable = new_table(numOfLines, maxNumOfWords);
-
-     //printf("numOfLines: %d;\nmaxNumOfWords, found in line: %d;\nmaxNumOfSymbols, found in line: %d;\n\n", pLookupTable->numOfLines, pLookupTable->maxNumOfWords, pLookupTable->maxNumOfSymbols);
-
-     rewind ( pFile );
-
-     if ( fill_table ( pLookupTable->dataTable , maxNumOfSymbols, maxNumOfWords, numOfLines, pFile ) != 0 )
-         printf ( "Error is in function fill_table... \n" );
-
-     fclose ( pFile );
-
-
-      int i = 0;
-      int j = 0;
-
-//      for (i = 0; i <= pLookupTable->numOfLines - 1; i++ ) {
-//           for (j = 0; j <= pLookupTable->maxNumOfWords - 1; j++) {
-//           printf ("%6.1f ", *(pLookupTable->dataTable + (i * pLookupTable->maxNumOfWords) + j));
-//           }
-//           printf ("\n");
-//      }
-
+    if (pFile != NULL) {
+        int maxNumOfSymbols = 0;
+        int maxNumOfWords = 0;
+        int numOfLines = 0;
+        //allocating memory to accommodate LookupTable structure see dataset.h
+        pLookupTable = malloc(3 * sizeof(int) + sizeof (size_t) + 5 * 3 * sizeof (double));
+        if (count_words_symbols(&maxNumOfSymbols, &maxNumOfWords, &numOfLines, pFile) != 0) {
+            printf("Error is in function count_words_symbols... \n");
+        }
+        pLookupTable->maxNumOfSymbols = maxNumOfSymbols;
+        pLookupTable->maxNumOfWords = maxNumOfWords;
+        pLookupTable->numOfLines = numOfLines;
+        pLookupTable->dataTable = new_table(numOfLines, maxNumOfWords);
+#ifdef DEBUG
+        printf("numOfLines: %d;\n\
+maxNumOfWords, found in line: %d;\n\
+maxNumOfSymbols, found in line: %d;\n",
+               pLookupTable->numOfLines,
+               pLookupTable->maxNumOfWords,
+               pLookupTable->maxNumOfSymbols);
+#endif
+        rewind(pFile);
+        if (fill_table(pLookupTable->dataTable,
+                       maxNumOfSymbols,
+                       maxNumOfWords,
+                       numOfLines,
+                       pFile) != 0) {
+            printf("Error is in function fill_table... \n");
+        }
+        fclose ( pFile );
+        int i = 0;
+        int j = 0;
+#ifdef DEBUG
+        printf("Result of parcing from %s\n", filename);
+        for (i = 0; i <= pLookupTable->numOfLines - 1; i++) {
+          for (j = 0; j <= pLookupTable->maxNumOfWords - 1; j++) {
+          printf ("%6.1f ", *(pLookupTable->dataTable + (i * pLookupTable->maxNumOfWords) + j));
+          }
+          printf("\n");
+        }
+#endif
     }
-
     return pLookupTable;
-
 }
 
-int count_words_symbols (int* maxNumOfSymbols, int* maxNumOfWords, int* numOfLines, FILE* pFile ) {
-
+// this function just check what is the size of the table maxNumOfWords - means total number of cells
+int count_words_symbols(int* maxNumOfSymbols, int* maxNumOfWords, int* numOfLines, FILE* pFile) {
     int c = 0;
     int inWord = 0;
     int nOfWords = 0;
     int nOfSymbols = 0;
     int nOfLines = 0;
-
     * maxNumOfSymbols = 0;
     * maxNumOfWords = 0;
     * numOfLines = 0;
-
-    while (1) {
-
-     inWord = 0;
-     nOfSymbols = 0;
-     nOfWords = 0;
-
-     while (1) {
-
-         c = getc( pFile );
-         //printf("%c", (char)c);
-
-         if (( c == '\n') || ( c == EOF )) {
-
-          break;
-
-         } else {
-
-          nOfSymbols++;
-
-          if (c == ' ' || c == '\t')
-              inWord = 0;
-
-          else if ( inWord == 0 ) {
-
-              inWord = 1;
-              nOfWords++;
-
-          }
-         }
-     }
-
-     if ( * maxNumOfSymbols < nOfSymbols )
-         * maxNumOfSymbols = nOfSymbols;
-
-     if ( * maxNumOfWords < nOfWords )
-         * maxNumOfWords = nOfWords;
-
-     if ( nOfWords != 0 )
-         ++nOfLines;
-
-     if (c == EOF) {
-
-       break;
-
-     }
-
+    while(1) {
+        inWord = 0;
+        nOfSymbols = 0;
+        nOfWords = 0;
+        while(1) {
+            c = getc(pFile);
+            //printf("%c", (char)c);
+            if ((c == '\n') || (c == EOF)) {
+                break;
+            } else {
+                nOfSymbols++;
+                if (c == ' ' || c == '\t')
+                    //we are reading blank characters
+                    inWord = 0;
+                else if (inWord == 0) {
+                    //ok we have got some data
+                    inWord = 1;
+                    nOfWords++;
+                }
+            }
+        }
+        if (* maxNumOfSymbols < nOfSymbols)
+            * maxNumOfSymbols = nOfSymbols;
+        if (* maxNumOfWords < nOfWords)
+            * maxNumOfWords = nOfWords;
+        if (nOfWords != 0)
+            ++nOfLines;
+        if (c == EOF) {
+            break;
+        }
     }
-
-     *numOfLines = nOfLines;
-
-//      printf("Result: %d lines %d columns successfully loaded!\n", * numOfLines, * maxNumOfWords);
-
+    *numOfLines = nOfLines;
+    //printf("Result: %d lines %d columns successfully loaded!\n", * numOfLines, * maxNumOfWords);
     return 0;
-
 }
 
-int parse_line ( char* pStringFromFile, double* outputArray) {
-
-    //printf ( "\nI'm parsing lines\n" );
-
+int parse_line(char* pStringFromFile, double* outputArray) {
+#ifdef DEBUG
+    printf("In function parse_line\n");
+#endif
     int i = 0;
-
     char * pLexemeFromFile = NULL;
-
-    pLexemeFromFile = strtok ( pStringFromFile," ;" );
-
-    while ( pLexemeFromFile != NULL ) {
-
-        *( outputArray + i ) = atof ( pLexemeFromFile );
-
-        //printf ( "%f\t" , atof ( pLexemeFromFile ) );
-
-        pLexemeFromFile = strtok (NULL, " ;");
-
+    pLexemeFromFile = strtok(pStringFromFile," ;");
+    while (pLexemeFromFile != NULL) {
+        *(outputArray + i) = atof(pLexemeFromFile);
+#ifdef DEBUG
+        printf ( "%f\t" , atof ( pLexemeFromFile ) );
+#endif
+        pLexemeFromFile = strtok(NULL, " ;");
         i++;
-
         }
-    //printf ("\n");
+#ifdef DEBUG
+    printf ("\n");
+#endif
     return 0;
 }
 
-double * new_table ( int numOfLines, int numOfWordsInLine ) {
-
+//this functions allocates memory for table, pointer will be returned
+double * new_table(int numOfLines, int numOfWordsInLine) {
     double * pDataTable = NULL;
-
     pDataTable = malloc ( numOfLines * numOfWordsInLine * sizeof (double) );
-
     return pDataTable;
+}
 
-    }
 
-
-int fill_table ( double* pDataTable , int maxNumOfSymbols, int maxNumOfWords, int numOfLines, FILE* pFile ) {
-
+int fill_table(double* pDataTable, int maxNumOfSymbols, int maxNumOfWords, int numOfLines, FILE* pFile) {
     //printf ( "I'm filling data table!\n" );
-
-    char pStringFromFile [maxNumOfSymbols];
-
+    char pStringFromFile[maxNumOfSymbols];
     int i = 0;
-
-    for ( i = 0 ; i < numOfLines; i++ ) {
-
-        fgets ( pStringFromFile , (maxNumOfSymbols + 2), pFile ); // terminating characters of string should be included
+    for (i = 0; i < numOfLines; i++) {
+        fgets( pStringFromFile, (maxNumOfSymbols + 2), pFile);
+        //terminating characters of string should be included
         //printf ( "%s" , pStringFromFile );
-
-        if ( parse_line ( pStringFromFile, (pDataTable + i * maxNumOfWords) ) != 0 )
-         printf ( "Error is in function parse_line... \n" );
-
-        }
-
+        //each line is appended to one-dimentional array
+        if (parse_line(pStringFromFile, (pDataTable + i * maxNumOfWords)) != 0)
+            printf ( "Error is in function parse_line... \n" );
+    }
     return 0;
-
 }
 
 int get_corner_position ( LookupTable* pLookupTable, double x, double y, int* line, int* column ) {
@@ -1192,24 +1141,29 @@ double interpolate ( Node* pNode1, Node* pNode2, Node* pNode3, Node* pNode4, Nod
 
     }
 
+//this function searches for data in lookup table
 double get_data_from_table ( LookupTable* pLookupTable, double x, double y ) {
-
      int cornerLineNumber = 0;
      int cornerColumnNumber = 0;
-
      double value = 0;
+     if ((x < *(pLookupTable->dataTable +
+                 (0 * pLookupTable->maxNumOfWords)+
+                 1)) ||
+         (x > *(pLookupTable->dataTable  +
+                 (0 * pLookupTable->maxNumOfWords) +
+                 (pLookupTable->maxNumOfWords - 1))) ||
+         (y < *(pLookupTable->dataTable +
+                (1 * pLookupTable->maxNumOfWords) + 0) ) ||
+         (y > *(pLookupTable->dataTable +
+                ((pLookupTable->numOfLines - 1) * pLookupTable->maxNumOfWords) +
+                0))
+         ) {
 
-
-     if (( x <  *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + 1) ) ||
-         ( x > *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (pLookupTable->maxNumOfWords - 1))) ||
-         ( y <  *(pLookupTable->dataTable + (1 * pLookupTable->maxNumOfWords) + 0) ) ||
-         ( y > *(pLookupTable->dataTable + ((pLookupTable->numOfLines - 1) * pLookupTable->maxNumOfWords) + 0))) {
-
-          printf ( "Requested values are out of data table's range (%f < x < %f) or (%f < y < %f) \n",
-          *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + 1),
-          *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (pLookupTable->maxNumOfWords - 1)),
-          *(pLookupTable->dataTable + (1 * pLookupTable->maxNumOfWords) + 0),
-          *(pLookupTable->dataTable + ((pLookupTable->numOfLines - 1) * pLookupTable->maxNumOfWords) + 0));
+         printf ( "Requested values are out of data table's range (%f < x < %f) or (%f < y < %f) \n",
+                  *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + 1),
+                  *(pLookupTable->dataTable + (0 * pLookupTable->maxNumOfWords) + (pLookupTable->maxNumOfWords - 1)),
+                  *(pLookupTable->dataTable + (1 * pLookupTable->maxNumOfWords) + 0),
+                  *(pLookupTable->dataTable + ((pLookupTable->numOfLines - 1) * pLookupTable->maxNumOfWords) + 0));
 
      } else {
 
